@@ -146,7 +146,43 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   
   
-  
+  // 댓글 작성
+const addComment = (postId) => {
+  const commentInput = document.getElementById("comment-input");
+  const content = commentInput.value.trim();
+
+  if (!content) {
+    alert("댓글을 입력하세요.");
+    return;
+  }
+  if (!currentUser) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  // 사용자 이름 가져오기
+  db.collection("users").doc(currentUser.uid).get().then((doc) => {
+    const userName = (doc.exists && doc.data().name) || "익명";
+
+    // Firestore에 댓글 저장
+    db.collection("posts").doc(postId)
+      .collection("comments")
+      .add({
+        content,
+        author: userName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        commentInput.value = "";
+        alert("댓글이 작성되었습니다!");
+      })
+      .catch((error) => {
+        console.error("댓글 작성 실패:", error);
+        alert("댓글 작성 중 오류가 발생했습니다.");
+      });
+  });
+};
+
 
   // 이벤트 리스너 설정
   const setupModalEventListeners = () => {
@@ -289,6 +325,44 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
   };
+/**
+ * 게시물에 달린 댓글을 실시간으로 불러와 화면에 표시하는 함수
+ * @param {string} postId - Firestore의 posts/{postId} 문서 ID
+ */
+const loadComments = (postId) => {
+  // 댓글 목록을 표시할 HTML 요소
+  const commentList = document.getElementById("comment-list");
+
+  // Firestore에서 해당 게시물 문서의 comments 서브 컬렉션을 불러옴
+  db.collection("posts")
+    .doc(postId)
+    .collection("comments")
+    .orderBy("timestamp", "desc")
+    .onSnapshot((snapshot) => {
+      // 댓글 목록을 초기화
+      commentList.innerHTML = "";
+
+      // 각 댓글 문서를 순회하며 화면에 표시
+      snapshot.forEach((doc) => {
+        const comment = doc.data();
+        const time = comment.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
+
+        // 댓글 하나를 감싸는 div 생성
+        const commentDiv = document.createElement("div");
+        commentDiv.classList.add("p-2", "border", "rounded");
+
+        // 댓글의 작성자, 내용, 시간 표시
+        commentDiv.innerHTML = `
+          <p class="text-sm text-gray-800 font-semibold">${comment.author || "익명"}</p>
+          <p class="text-sm mb-1">${comment.content}</p>
+          <p class="text-xs text-gray-500">${time}</p>
+        `;
+
+        // commentList 요소에 댓글 div 추가
+        commentList.appendChild(commentDiv);
+      });
+    });
+};
 
   const viewPost = (postId) => {
     db.collection("posts").doc(postId).get().then((doc) => {
@@ -327,7 +401,12 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("좋아요 업데이트 중 오류가 발생했습니다.");
           });
         };
-  
+        // 댓글 불러오기
+        loadComments(postId);
+
+        // 댓글 달기 버튼
+        const addCommentButton = document.getElementById("add-comment");
+        addCommentButton.onclick = () => addComment(postId);
         document.getElementById("view-rating").textContent = post.rating ? `${post.rating}점` : "없음";
   
         enableRatingSection(postId); // 별점 섹션 활성화
