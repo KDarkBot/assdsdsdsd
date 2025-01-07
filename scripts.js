@@ -104,6 +104,48 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("글 작성 중 오류가 발생했습니다.");
     }
   });
+  const checkIfAdmin = async () => {
+    if (currentUser) {
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        if (userDoc.exists && userDoc.data().role === "admin") {
+          console.log("관리자 확인 성공");
+          return true;
+        }
+      } catch (error) {
+        console.error("관리자 확인 중 오류:", error);
+      }
+    }
+    console.log("관리자가 아님");
+    return false;
+  };
+  
+  const enableRatingSection = async (postId) => {
+    const isAdmin = await checkIfAdmin();
+    const ratingSection = document.getElementById("rating-section");
+  
+    if (isAdmin) {
+      ratingSection?.classList.remove("hidden");
+      document.querySelectorAll(".rate").forEach((button) => {
+        button.onclick = () => {
+          const rating = parseInt(button.dataset.rating);
+          db.collection("posts").doc(postId).update({ rating })
+            .then(() => {
+              alert(`${rating}점을 부여했습니다.`);
+              // 별점이 부여되면 모달 업데이트
+              document.getElementById("view-rating").textContent = `${rating}점`;
+            })
+            .catch((error) => {
+              console.error("별점 부여 오류:", error);
+              alert("별점 부여 실패: " + error.message);
+            });
+        };
+      });
+    } else {
+      ratingSection?.classList.add("hidden");
+    }
+  };
+  
   
 
   // 이벤트 리스너 설정
@@ -148,15 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // 관리자 확인 함수
-  const checkIfAdmin = async () => {
-    if (currentUser) {
-      const userDoc = await db.collection("users").doc(currentUser.uid).get();
-      isAdmin = userDoc.exists && userDoc.data().role === "admin";
-    } else {
-      isAdmin = false;
-    }
-  };
+
 
   // 로그인 처리
   document.getElementById("login-submit")?.addEventListener("click", () => {
@@ -256,27 +290,30 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   };
 
-  // 게시물 보기
   const viewPost = (postId) => {
     db.collection("posts").doc(postId).get().then((doc) => {
       if (doc.exists) {
         const post = doc.data();
         const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-
+  
         document.getElementById("view-title").textContent = post.title || "제목 없음";
         document.getElementById("view-author").textContent = post.author || "작성자 없음";
         document.getElementById("view-timestamp").textContent = timestamp;
         document.getElementById("view-content").textContent = post.content || "내용 없음";
-
+  
         const imageElement = document.getElementById("view-image");
         if (post.imageUrl) {
           imageElement.innerHTML = `<img src="${post.imageUrl}" alt="게시물 이미지" class="max-h-64 w-full object-cover rounded-lg">`;
         } else {
           imageElement.innerHTML = `<span class="text-gray-500">이미지가 없습니다</span>`;
         }
-
+  
+        // 별점 활성화
+        enableRatingSection(postId);
+  
         toggleModal("view-modal", true);
-
+  
+        // 좋아요 처리
         const likeButton = document.getElementById("like-post");
         likeButton.onclick = () => {
           if (likedPosts.has(postId)) {
@@ -293,18 +330,20 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   };
+  
 
-  // 초기화
   auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     if (user) {
+      console.log("로그인된 사용자:", user.email);
       await checkIfAdmin();
     } else {
+      console.log("사용자가 로그인하지 않았습니다.");
       isAdmin = false;
     }
     updateUI();
     loadPosts();
   });
-
+  
   setupModalEventListeners();
 });
