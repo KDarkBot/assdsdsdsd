@@ -83,43 +83,121 @@
   </div>
 
 <!-- 게시물 보기 모달 -->
-<div id="view-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-    <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl">
-      <h3 id="view-title" class="text-2xl font-semibold mb-6 text-center text-gray-700"></h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- 이미지 섹션 -->
-        <div id="view-image" class="bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden h-72 shadow-md">
-          <span class="text-gray-400">이미지가 없습니다</span>
-        </div>
-  
-        <!-- 상세 정보 섹션 -->
-        <div>
-          <p class="text-gray-600"><strong>작성자:</strong> <span id="view-author"></span></p>
-          <p class="text-gray-600"><strong>작성시간:</strong> <span id="view-timestamp"></span></p>
-          <p class="text-gray-600 mt-4"><strong>내용:</strong></p>
-          <p id="view-content" class="mt-2 text-gray-700"></p>
-  
-          <!-- 관리자 별점 섹션 -->
-          <p class="mt-6 text-gray-600"><strong>관리자 별점:</strong> <span id="view-rating" class="text-yellow-500">없음</span></p>
-          <div id="rating-section" class="mt-4 flex gap-2 hidden">
-            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="1">1점</button>
-            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="2">2점</button>
-            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="3">3점</button>
-            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="4">4점</button>
-            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="5">5점</button>
-          </div>
-  
-          <!-- 좋아요 버튼 -->
-          <button id="like-post" class="like-button mt-6 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600">❤️ 좋아요</button>
-        </div>
+<div 
+  id="view-modal" 
+  class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+>
+  <div 
+    class="bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl relative
+           max-h-[80vh] overflow-auto" 
+  >
+    <!-- 닫기 버튼 (오른쪽 상단) -->
+    <button 
+      id="close-view-modal"
+      class="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 font-medium rounded-lg hover:bg-gray-400"
+    >
+      닫기
+    </button>
+
+    <!-- 모달 헤더 (제목 등) -->
+    <h3 
+      id="view-title" 
+      class="text-2xl font-semibold mb-4 text-center text-gray-700"
+    >
+      <!-- 게시물 제목이 동적으로 들어감 -->
+    </h3>
+
+    <!-- 그리드 레이아웃: 이미지 & 내용/버튼/댓글 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- 왼쪽: 이미지 섹션 -->
+      <div 
+        id="view-image" 
+        class="bg-gray-100 rounded-lg flex items-center justify-center h-72 shadow-md"
+      >
+        <span class="text-gray-400">이미지가 없습니다</span>
       </div>
-  
-      <!-- 닫기 버튼 -->
-      <div class="flex justify-end mt-6">
-        <button id="close-view-modal" class="px-4 py-2 bg-gray-300 text-gray-800 font-medium rounded-lg hover:bg-gray-400">닫기</button>
+
+      <!-- 오른쪽: 게시물 정보, 좋아요, 별점, 댓글 작성 버튼 영역 -->
+      <div>
+        <!-- 작성자, 작성시간 -->
+        <p class="text-gray-600 mb-1">
+          <strong>작성자:</strong>
+          <span id="view-author"></span>
+        </p>
+        <p class="text-gray-600 mb-4">
+          <strong>작성시간:</strong>
+          <span id="view-timestamp"></span>
+        </p>
+
+        <!-- 내용 -->
+        <p class="text-gray-600">
+          <strong>내용:</strong>
+        </p>
+        <p 
+          id="view-content" 
+          class="mt-1 text-gray-700 mb-4"
+        >
+          <!-- 게시물 내용 동적 -->
+        </p>
+
+        <!-- 관리자 별점 섹션 -->
+        <div class="mb-4">
+          <p class="text-gray-600">
+            <strong>관리자 별점:</strong> 
+            <span id="view-rating" class="text-yellow-500">없음</span>
+          </p>
+          <!-- rating-section은 관리자일 때만 보임 (JS에서 hidden 해제) -->
+          <div id="rating-section" class="mt-2 flex gap-2 hidden">
+            <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="1">1점</button>
+            <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="2">2점</button>
+            <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="3">3점</button>
+            <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="4">4점</button>
+            <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="5">5점</button>
+          </div>
+        </div>
+
+        <!-- 좋아요 버튼 -->
+        <button 
+          id="like-post" 
+          class="like-button bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600"
+        >
+          ❤️ 좋아요
+        </button>
+      </div>
+    </div> <!-- end grid -->
+
+    <!-- 댓글 섹션 -->
+    <div class="mt-6">
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">댓글</h4>
+      <!-- 댓글 목록 -->
+      <div 
+        id="comment-list" 
+        class="space-y-2 mb-4 border-t pt-4
+               max-h-60 overflow-y-auto"
+      >
+        <!-- 댓글이 동적으로 추가됨 -->
+      </div>
+      <!-- 댓글 작성 -->
+      <div class="flex flex-col md:flex-row gap-2">
+        <textarea 
+          id="comment-input"
+          class="flex-1 p-2 border rounded"
+          rows="2"
+          placeholder="댓글을 입력하세요"
+        ></textarea>
+        <button 
+          id="add-comment"
+          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 md:self-end"
+        >
+          댓글 달기
+        </button>
       </div>
     </div>
+
   </div>
+</div>
+
+
   <!-- 회원가입 모달 -->
 <div id="signup-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
     <div class="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full">
