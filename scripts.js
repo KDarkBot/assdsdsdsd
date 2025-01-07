@@ -132,12 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
           db.collection("posts").doc(postId).update({ rating })
             .then(() => {
               alert(`${rating}점을 부여했습니다.`);
-              // 별점이 부여되면 모달 업데이트
               document.getElementById("view-rating").textContent = `${rating}점`;
             })
             .catch((error) => {
-              console.error("별점 부여 오류:", error);
-              alert("별점 부여 실패: " + error.message);
+              console.error("별점 저장 실패:", error);
+              alert(`별점 저장 실패: ${error.message}`);
             });
         };
       });
@@ -145,6 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ratingSection?.classList.add("hidden");
     }
   };
+  
   
   
 
@@ -308,28 +308,15 @@ document.addEventListener("DOMContentLoaded", () => {
           imageElement.innerHTML = `<span class="text-gray-500">이미지가 없습니다</span>`;
         }
   
-        // 별점 활성화
-        enableRatingSection(postId);
+        document.getElementById("view-rating").textContent = post.rating ? `${post.rating}점` : "없음";
+  
+        enableRatingSection(postId); // 별점 섹션 활성화
   
         toggleModal("view-modal", true);
-  
-        // 좋아요 처리
-        const likeButton = document.getElementById("like-post");
-        likeButton.onclick = () => {
-          if (likedPosts.has(postId)) {
-            alert("이미 좋아요를 누르셨습니다.");
-          } else {
-            db.collection("posts").doc(postId).update({
-              likes: firebase.firestore.FieldValue.increment(1),
-            }).then(() => {
-              likedPosts.add(postId);
-              alert("좋아요를 눌렀습니다!");
-            });
-          }
-        };
       }
     });
   };
+  
   
 
   auth.onAuthStateChanged(async (user) => {
