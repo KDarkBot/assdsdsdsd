@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentUser = null;
   let isAdmin = false;
-  const likedPosts = new Set(); // 좋아요를 누른 게시물 ID 저장
+  let likedPosts = new Set();
 
   // UI 업데이트 함수
   const updateUI = () => {
@@ -307,6 +307,26 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           imageElement.innerHTML = `<span class="text-gray-500">이미지가 없습니다</span>`;
         }
+        const likeButton = document.getElementById("like-post");
+        likeButton.onclick = () => {
+          // 1) 이미 좋아요 누른 글인지 확인
+          if (likedPosts.has(postId)) {
+            alert("이미 좋아요를 누르셨습니다!");
+            return;
+          }
+  
+          // 2) Firestore에서 좋아요 수 1 증가
+          db.collection("posts").doc(postId).update({
+            likes: firebase.firestore.FieldValue.increment(1)
+          }).then(() => {
+            // 3) 로컬 likedPosts에 추가 → 중복 방지
+            likedPosts.add(postId);
+            alert("좋아요를 눌렀습니다!");
+          }).catch((error) => {
+            console.error("좋아요 업데이트 실패:", error);
+            alert("좋아요 업데이트 중 오류가 발생했습니다.");
+          });
+        };
   
         document.getElementById("view-rating").textContent = post.rating ? `${post.rating}점` : "없음";
   
@@ -317,7 +337,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
   
-  
+  // Firestore 중복 좋아요 방지 예시
+const likeButton = document.getElementById("like-post");
+likeButton.onclick = async () => {
+  const likeQuery = await db.collection("likes")
+    .where("postId", "==", postId)
+    .where("userId", "==", currentUser.uid)
+    .get();
+
+  if (!likeQuery.empty) {
+    alert("이미 좋아요를 누르셨습니다.");
+    return;
+  }
+
+  // 중복 아님 → 좋아요 등록
+  await db.collection("posts").doc(postId).update({
+    likes: firebase.firestore.FieldValue.increment(1),
+  });
+  await db.collection("likes").add({
+    postId,
+    userId: currentUser.uid,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  alert("좋아요를 눌렀습니다!");
+};
+
 
   auth.onAuthStateChanged(async (user) => {
     currentUser = user;
