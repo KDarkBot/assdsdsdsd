@@ -2,16 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 1) Firebase 초기화
   // -------------------------------
-  const firebaseConfig = {
-    apiKey: "AIzaSyA...L6LVbHC8",
-    authDomain: "chatsystem1-b341f.firebaseapp.com",
-    databaseURL: "https://chatsystem1-b341f-default-rtdb.firebaseio.com",
-    projectId: "chatsystem1-b341f",
-    storageBucket: "chatsystem1-b341f.appspot.com",
-    messagingSenderId: "111851594752",
-    appId: "1:111851594752:web:ab7955b9b052ba907c64e5",
-    measurementId: "G-M14RE2SYWG",
-  };
+ const firebaseConfig = {
+  apiKey: "AIzaSyAXST1zO_7Rzal1nmkS6mcdib2L6LVbHC8",
+  authDomain: "chatsystem1-b341f.firebaseapp.com",
+  databaseURL: "https://chatsystem1-b341f-default-rtdb.firebaseio.com",
+  projectId: "chatsystem1-b341f",
+  storageBucket: "chatsystem1-b341f.appspot.com",
+  messagingSenderId: "111851594752",
+  appId: "1:111851594752:web:ab7955b9b052ba907c64e5",
+  measurementId: "G-M14RE2SYWG"
+};
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
