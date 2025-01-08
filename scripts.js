@@ -552,7 +552,36 @@ mobileOddEvenButton?.addEventListener("click", () => {
         });
       });
   };
-
+  async function updateUserPoints() {
+    if (!currentUser) return;
+  
+    try {
+      const userDoc = await db.collection("users").doc(currentUser.uid).get();
+      const userData = userDoc.data();
+      const points = userData.points || 0;
+  
+      const pointsDisplay = document.getElementById("current-points");
+      pointsDisplay.textContent = `보유 포인트: ${points}`;
+    } catch (error) {
+      console.error("포인트 업데이트 오류:", error);
+    }
+  }
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      currentUser = user;
+      await updateUserPoints(); // 포인트 업데이트
+    } else {
+      currentUser = null;
+      document.getElementById("current-points").textContent = ""; // 로그아웃 시 초기화
+    }
+  });
+  document.getElementById("mobile-send-points-button")?.addEventListener("click", async () => {
+    // 포인트 전송 로직 실행 후 포인트 갱신
+    await updateUserPoints();
+  });
+  
+  // 다른 포인트 관련 이벤트에도 동일 로직 추가
+      
   // -------------------------------
   // 8.1) 게시물 삭제
   // -------------------------------
