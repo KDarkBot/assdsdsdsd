@@ -549,31 +549,32 @@ const loadPosts = async () => {
 
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td class="py-4 px-6 hidden md:table-cell">${index + 1}</td>
-          <td class="py-4 px-6">${post.title || "제목 없음"}</td>
-          <td class="py-4 px-6">${post.author || "작성자 없음"}</td>
-          <td class="py-4 px-6 hidden md:table-cell">${timestamp}</td>
-          <td class="py-4 px-6">${post.likes || 0}</td>
-          <td class="py-4 px-6 text-left">
-            <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
-              보기
-            </button>
-            ${
-              (isAdmin || userStealItems > 0)
-                ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
-                     뺏기
-                   </button>`
-                : ""
-            }
-            ${
-              isAdmin
-                ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
-                     삭제
-                   </button>`
-                : ""
-            }
-          </td>
-        `;
+  <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
+  <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
+  <td class="py-4 px-6 hidden md:table-cell text-sm sm:text-base">${timestamp}</td>
+  <td class="py-4 px-6 text-center text-sm sm:text-base">${post.likes || 0}</td>
+  <td class="py-4 px-6 text-center">
+    <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
+      보기
+    </button>
+    ${
+      (isAdmin || userStealItems > 0)
+        ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
+             뺏기
+           </button>`
+        : ""
+    }
+    ${
+      isAdmin
+        ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
+             삭제
+           </button>`
+        : ""
+    }
+  </td>
+`;
+
+      
         postList.appendChild(row);
       });
 
@@ -899,6 +900,10 @@ function givePointsToUser(targetUid) {
       });
     });
   };
+// 모바일 메뉴의 랭킹 버튼 클릭 이벤트
+document.getElementById("mobile-ranking-button")?.addEventListener("click", () => {
+  window.location.href = "index2.html"; // 랭킹 페이지로 이동
+});
 
   // -------------------------------
   // 13) Firebase 인증 상태 체크
