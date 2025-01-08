@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const editUserButton = document.getElementById("edit-user-button");
   const shopButton = document.getElementById("shop-button");
   const openGivePointsButton = document.getElementById("open-give-points");
-
+  const gameblebt = document.getElementById("odd-even-gamble-button");
   // 모바일 버튼
   const mobileLoginButton = document.getElementById("mobile-login-button");
   const mobileSignupButton = document.getElementById("mobile-signup-button");
@@ -40,6 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const mobileShopButton = document.getElementById("mobile-shop-button");
   const mobileGivePointsButton = document.getElementById("mobile-give-points");
   const mobileeditUserButton = document.getElementById("mobile-edit-user-button");
+  const mobilegameblebt = document.getElementById("mobile-odd-even-button");
+  
   if (currentUser) {
     // 로그인 상태
     loginButton?.classList.add("hidden");
@@ -49,6 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
     shopButton?.classList.remove("hidden");
     mobileShopButton?.classList.remove("hidden");
     mobileeditUserButton?.classList.remove("hidden");
+    gameblebt?.classList.remove("hidden");
+    mobilegameblebt?.classList.remove("hidden")
     // 관리자의 포인트 지급 버튼
     if (isAdmin) {
       openGivePointsButton?.classList.remove("hidden");
@@ -78,6 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileShopButton?.classList.add("hidden");
     mobileGivePointsButton?.classList.add("hidden");
     mobileeditUserButton?.classList.add("hidden");
+
+    gameblebt?.classList.add("hidden");
+    mobilegameblebt?.classList.add("hidden")
   }
 };
 
