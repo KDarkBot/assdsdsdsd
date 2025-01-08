@@ -651,15 +651,19 @@ const loadPosts = () => {
       postList.innerHTML = "";
 
       try {
-        const userDoc = await db.collection("users").doc(currentUser.uid).get();
-        const userStealItems = userDoc.exists ? userDoc.data().stealItems || 0 : 0;
+        await getTopUser(); // 포인트 1등 사용자 정보 가져오기
 
         snapshot.forEach((doc) => {
           const post = doc.data();
           const postId = doc.id;
           const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
 
+          // 1등 사용자의 게시물에 스타일 추가
+          const isTopUser = post.author === topUserName;
+          const rowClass = isTopUser ? "top-user-gradient" : "";
+
           const row = document.createElement("tr");
+          row.className = rowClass; // 배경 스타일 적용
           row.innerHTML = `
             <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
             <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
@@ -714,6 +718,25 @@ const loadPosts = () => {
         console.error("실시간 게시물 로딩 중 오류 발생:", error);
       }
     });
+};
+
+let topUserName = null; // 포인트 1등 사용자의 이름
+
+const getTopUser = async () => {
+  try {
+    const querySnapshot = await db.collection("users")
+      .orderBy("points", "desc")
+      .limit(1)
+      .get();
+
+    if (!querySnapshot.empty) {
+      const topUserDoc = querySnapshot.docs[0];
+      topUserName = topUserDoc.data().name || null;
+      console.log("포인트 1등 사용자:", topUserName);
+    }
+  } catch (error) {
+    console.error("포인트 1등 사용자 가져오기 실패:", error);
+  }
 };
 
 
