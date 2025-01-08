@@ -640,106 +640,84 @@ mobileOddEvenButton?.addEventListener("click", () => {
   let isFetching = false; // 데이터를 가져오는 중인지 확인
 const POSTS_PER_PAGE = 10; // 페이지당 로드할 게시물 수
 let lastVisibleDoc = null
-const loadPosts = async () => {
-  if (isFetching) return; // 이미 데이터를 가져오는 중이면 중단
-  isFetching = true;
-
+const loadPosts = () => {
   const postList = document.getElementById("post-list");
 
-  let query = db.collection("posts")
+  // Firestore의 posts 컬렉션에서 실시간 업데이트 감지
+  db.collection("posts")
     .orderBy("timestamp", "desc")
-    .limit(POSTS_PER_PAGE);
+    .onSnapshot(async (snapshot) => {
+      // 기존 데이터를 초기화
+      postList.innerHTML = "";
 
-  if (lastVisibleDoc) {
-    query = query.startAfter(lastVisibleDoc);
-  }
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const userStealItems = userDoc.exists ? userDoc.data().stealItems || 0 : 0;
 
-  try {
-    const userDoc = await db.collection("users").doc(currentUser.uid).get();
-    const userStealItems = userDoc.data().stealItems || 0;
+        snapshot.forEach((doc) => {
+          const post = doc.data();
+          const postId = doc.id;
+          const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
 
-    const snapshot = await query.get();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
+            <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
+            <td class="py-4 px-6 hidden md:table-cell text-sm sm:text-base">${timestamp}</td>
+            <td class="py-4 px-6 text-center text-sm sm:text-base">${post.likes || 0}</td>
+            <td class="py-4 px-6 text-center">
+              <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
+                보기
+              </button>
+              ${
+                (isAdmin || userStealItems > 0)
+                  ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
+                       뺏기
+                     </button>`
+                  : ""
+              }
+              ${
+                isAdmin
+                  ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
+                       삭제
+                     </button>`
+                  : ""
+              }
+            </td>
+          `;
 
-    if (!snapshot.empty) {
-      lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]; // 마지막 문서 저장
-
-      snapshot.forEach((doc, index) => {
-        const post = doc.data();
-        const postId = doc.id;
-        const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-  <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
-  <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
-  <td class="py-4 px-6 hidden md:table-cell text-sm sm:text-base">${timestamp}</td>
-  <td class="py-4 px-6 text-center text-sm sm:text-base">${post.likes || 0}</td>
-  <td class="py-4 px-6 text-center">
-    <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
-      보기
-    </button>
-    ${
-      (isAdmin || userStealItems > 0)
-        ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
-             뺏기
-           </button>`
-        : ""
-    }
-    ${
-      isAdmin
-        ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
-             삭제
-           </button>`
-        : ""
-    }
-  </td>
-`;
-
-      
-        postList.appendChild(row);
-      });
-
-      // 버튼 이벤트 추가
-      document.querySelectorAll(".view-post").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const postId = e.target.dataset.id;
-          viewPost(postId);
+          postList.appendChild(row);
         });
-      });
 
-      document.querySelectorAll(".delete-post").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const postId = e.target.dataset.id;
-          deletePost(postId);
+        // 버튼 이벤트 추가
+        document.querySelectorAll(".view-post").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const postId = e.target.dataset.id;
+            viewPost(postId);
+          });
         });
-      });
 
-      document.querySelectorAll(".steal-post").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const postId = e.target.dataset.id;
-          stealPost(postId);
+        document.querySelectorAll(".delete-post").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const postId = e.target.dataset.id;
+            deletePost(postId);
+          });
         });
-      });
-    } else {
-      console.log("더 이상 불러올 데이터가 없습니다.");
-    }
-  } catch (error) {
-    console.error("게시물 목록을 불러오는 중 오류 발생:", error);
-  }
 
-  isFetching = false; // 데이터 가져오기 완료
+        document.querySelectorAll(".steal-post").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const postId = e.target.dataset.id;
+            stealPost(postId);
+          });
+        });
+      } catch (error) {
+        console.error("실시간 게시물 로딩 중 오류 발생:", error);
+      }
+    });
 };
 
-// 스크롤 이벤트 추가
-const handleScroll = () => {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-  if (scrollTop + clientHeight >= scrollHeight - 200 && !isFetching) {
-    loadPosts(); // 스크롤이 하단에 가까워지면 게시물 추가 로드
-  }
-};
 
-window.addEventListener("scroll", handleScroll);
 
 // 초기 데이터 로드
 auth.onAuthStateChanged(async (user) => {
