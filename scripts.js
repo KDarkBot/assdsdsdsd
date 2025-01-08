@@ -2,17 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 1) Firebase 초기화
   // -------------------------------
- const firebaseConfig = {
-  apiKey: "AIzaSyAXST1zO_7Rzal1nmkS6mcdib2L6LVbHC8",
-  authDomain: "chatsystem1-b341f.firebaseapp.com",
-  databaseURL: "https://chatsystem1-b341f-default-rtdb.firebaseio.com",
-  projectId: "chatsystem1-b341f",
-  storageBucket: "chatsystem1-b341f.appspot.com",
-  messagingSenderId: "111851594752",
-  appId: "1:111851594752:web:ab7955b9b052ba907c64e5",
-  measurementId: "G-M14RE2SYWG"
-};
-
+  const firebaseConfig = {
+    apiKey: "AIzaSyAXST1zO_7Rzal1nmkS6mcdib2L6LVbHC8",
+    authDomain: "chatsystem1-b341f.firebaseapp.com",
+    databaseURL: "https://chatsystem1-b341f-default-rtdb.firebaseio.com",
+    projectId: "chatsystem1-b341f",
+    storageBucket: "chatsystem1-b341f.appspot.com",
+    messagingSenderId: "111851594752",
+    appId: "1:111851594752:web:ab7955b9b052ba907c64e5",
+    measurementId: "G-M14RE2SYWG"
+  };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
@@ -25,24 +24,37 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 2) UI 업데이트
   // -------------------------------
-  const updateUI = () => {
-    const loginButton = document.getElementById("login-button");
-    const signupButton = document.getElementById("signup-button");
-    const logoutButton = document.getElementById("logout-button");
-    const editUserButton = document.getElementById("edit-user-button");
-    if (currentUser) {
-      loginButton?.classList.add("hidden");
-      signupButton?.classList.add("hidden");
-      logoutButton?.classList.remove("hidden");
-      editUserButton?.classList.remove("hidden");
-    } else {
-      loginButton?.classList.remove("hidden");
-      signupButton?.classList.remove("hidden");
-      logoutButton?.classList.add("hidden");
-      editUserButton?.classList.add("hidden");
-    }
-  };
+ // 2) UI 업데이트
+ const updateUI = () => {
+  const loginButton = document.getElementById("login-button");
+  const signupButton = document.getElementById("signup-button");
+  const logoutButton = document.getElementById("logout-button");
+  const editUserButton = document.getElementById("edit-user-button");
+  // 추가: 포인트 지급 버튼
+  const openGivePointsButton = document.getElementById("open-give-points");
 
+  if (currentUser) {
+    // 로그인 상태
+    loginButton?.classList.add("hidden");
+    signupButton?.classList.add("hidden");
+    logoutButton?.classList.remove("hidden");
+    editUserButton?.classList.remove("hidden");
+
+    // 관리자면 "포인트 지급" 버튼 보이기
+    if (isAdmin) {
+      openGivePointsButton?.classList.remove("hidden");
+    } else {
+      openGivePointsButton?.classList.add("hidden");
+    }
+  } else {
+    // 비로그인
+    loginButton?.classList.remove("hidden");
+    signupButton?.classList.remove("hidden");
+    logoutButton?.classList.add("hidden");
+    editUserButton?.classList.add("hidden");
+    openGivePointsButton?.classList.add("hidden");
+  }
+};
   // -------------------------------
   // 3) 모달 열기/닫기 함수
   // -------------------------------
@@ -55,12 +67,14 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.toggle("hidden", !show);
 
     // 모달 열기 시 body 스크롤 방지
-    if (show) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = show ? "hidden" : "auto";
   };
+
+  // 4) 랭킹 버튼 → index2.html 로 이동
+  const rankingButton = document.getElementById("ranking-button");
+  rankingButton?.addEventListener("click", () => {
+    window.location.href = "index2.html";
+  });
 
   // -------------------------------
   // 4) 새 글 작성 (이미지 업로드 포함)
@@ -74,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("제목과 내용을 입력하세요.");
       return;
     }
-
     if (!currentUser) {
       alert("로그인이 필요합니다.");
       return;
@@ -85,12 +98,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const userDoc = await db.collection("users").doc(currentUser.uid).get();
       const authorName = userDoc.exists ? userDoc.data().name : "익명";
 
+      // Firestore에 게시글 저장
       const savePostToFirestore = (imageUrl = null) => {
         db.collection("posts").add({
           title,
           content,
           imageUrl,
-          author: authorName, 
+          author: authorName,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           likes: 0,
           rating: 0,
@@ -104,6 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       if (file) {
+        // 이미지 업로드
         const storageRef = storage.ref(`images/${Date.now()}_${file.name}`);
         const snapshot = await storageRef.put(file);
         const url = await snapshot.ref.getDownloadURL();
@@ -141,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   const enableRatingSection = async (postId) => {
     const ratingSection = document.getElementById("rating-section");
-    const adminCheck = await checkIfAdmin(); // 현재 사용자 관리자 여부
+    const adminCheck = await checkIfAdmin();
 
     if (adminCheck) {
       ratingSection?.classList.remove("hidden");
@@ -208,6 +223,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   const loadComments = (postId) => {
     const commentList = document.getElementById("comment-list");
+    if (!commentList) return;
+
     db.collection("posts").doc(postId)
       .collection("comments")
       .orderBy("timestamp", "desc")
@@ -228,19 +245,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
   };
+
+  // -------------------------------
+  // 8.1) 게시물 삭제
+  // -------------------------------
   const deletePost = (postId) => {
-    // Firestore 문서 삭제
     db.collection("posts").doc(postId).delete()
       .then(() => {
-     
-        // onSnapshot 실시간 구독 중이면 목록 자동 갱신
+        alert("게시물이 삭제되었습니다.");
       })
       .catch((error) => {
         console.error("게시물 삭제 오류:", error);
         alert("게시물 삭제 중 오류가 발생했습니다.");
       });
   };
-  
+
   // -------------------------------
   // 9) 게시물 보기(viewPost)
   // -------------------------------
@@ -264,31 +283,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 좋아요 버튼
         const likeButton = document.getElementById("like-post");
-        likeButton.onclick = () => {
-          // 중복 좋아요 방지
-          if (likedPosts.has(postId)) {
-            alert("이미 좋아요를 누르셨습니다!");
-            return;
-          }
+        if (likeButton) {
+          likeButton.onclick = () => {
+            // 중복 좋아요 방지
+            if (likedPosts.has(postId)) {
+              alert("이미 좋아요를 누르셨습니다!");
+              return;
+            }
 
-          // 좋아요 +1
-          db.collection("posts").doc(postId).update({
-            likes: firebase.firestore.FieldValue.increment(1)
-          }).then(() => {
-            likedPosts.add(postId);
-            alert("좋아요를 눌렀습니다!");
-          }).catch((error) => {
-            console.error("좋아요 업데이트 실패:", error);
-            alert("좋아요 업데이트 중 오류가 발생했습니다.");
-          });
-        };
+            // 좋아요 +1
+            db.collection("posts").doc(postId).update({
+              likes: firebase.firestore.FieldValue.increment(1)
+            }).then(() => {
+              likedPosts.add(postId);
+              alert("좋아요를 눌렀습니다!");
+            }).catch((error) => {
+              console.error("좋아요 업데이트 실패:", error);
+              alert("좋아요 업데이트 중 오류가 발생했습니다.");
+            });
+          };
+        }
 
         // 댓글 실시간 불러오기
         loadComments(postId);
 
         // 댓글 작성 버튼
         const addCommentButton = document.getElementById("add-comment");
-        addCommentButton.onclick = () => addComment(postId);
+        if (addCommentButton) {
+          addCommentButton.onclick = () => addComment(postId);
+        }
 
         // 관리자 별점 섹션
         document.getElementById("view-rating").textContent = post.rating ? `${post.rating}점` : "없음";
@@ -305,6 +328,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   const loadPosts = () => {
     const postList = document.getElementById("post-list");
+    if (!postList) return;
+
     db.collection("posts")
       .orderBy("timestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -314,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
         snapshot.forEach((doc) => {
           const post = doc.data();
           const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-  
+
           const row = document.createElement("tr");
           row.innerHTML = `
             <!-- NO 열 (모바일 숨김) -->
@@ -344,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
           `;
           postList.appendChild(row);
         });
-  
+
         // "보기" 버튼 이벤트
         document.querySelectorAll(".view-post").forEach((btn) => {
           btn.addEventListener("click", (e) => {
@@ -352,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
             viewPost(postId);
           });
         });
-  
+
         // "삭제" 버튼 이벤트 (관리자만 표시됨)
         document.querySelectorAll(".delete-post").forEach((delBtn) => {
           delBtn.addEventListener("click", (e) => {
@@ -362,11 +387,99 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
   };
-  
-  
+
+  // -------------------------------
+  // [신규 추가] 10.5) 모든 사용자 불러오기 + 포인트 지급
+  // -------------------------------
+  const loadAllUsers = () => {
+    const userListDiv = document.getElementById("user-list");
+    if (!userListDiv) return;
+
+    // users 컬렉션 전체 조회
+    db.collection("users").get().then((snapshot) => {
+      userListDiv.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const userData = doc.data();
+        const uid = doc.id;
+
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "p-2 border rounded flex items-center justify-between";
+
+        // 사용자 정보 표시
+        const userInfo = `
+          <span>이름: ${userData.name || "이름 없음"} / 이메일: ${userData.email || ""} / 포인트: ${userData.points || 0}</span>
+        `;
+
+        // 관리자 전용 "포인트 지급" 버튼
+        const givePointsButton = isAdmin ? `
+          <button class="give-points-btn bg-yellow-500 text-white px-2 py-1 rounded ml-2" data-uid="${uid}">
+            포인트 지급
+          </button>
+        ` : "";
+
+        rowDiv.innerHTML = userInfo + givePointsButton;
+        userListDiv.appendChild(rowDiv);
+      });
+
+      // 포인트 지급 버튼 이벤트
+      document.querySelectorAll(".give-points-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const targetUid = e.target.dataset.uid;
+          givePointsToUser(targetUid);
+        });
+      });
+    });
+  };
+
+ // [추가] 포인트 지급 로직
+ function givePointsToUser(uid) {
+  const amountStr = prompt("지급할 포인트 양을 입력하세요", "10");
+  if (!amountStr) return;
+
+  const amount = parseInt(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    alert("유효한 숫자를 입력하세요.");
+    return;
+  }
+
+  db.collection("users").doc(uid)
+    .update({
+      points: firebase.firestore.FieldValue.increment(amount)
+    })
+    .then(() => {
+      alert("포인트가 지급되었습니다!");
+      // 목록 다시 불러와 갱신
+      loadAllUsers();
+    })
+    .catch((err) => {
+      console.error("포인트 지급 오류:", err);
+      alert("포인트 지급 중 오류가 발생했습니다.");
+    });
+}
+
+  // 포인트 지급 모달 열기 버튼
+  const openGivePointsButton = document.getElementById("open-give-points");
+  openGivePointsButton?.addEventListener("click", () => {
+    // 관리자만 열 수 있다고 가정 (isAdmin 체크)
+    if (!isAdmin) {
+      alert("관리자만 접근 가능합니다.");
+      return;
+    }
+    // 모달 열기
+    toggleModal("give-points-modal", true);
+    // 열 때마다 전체 유저 목록 로드
+    loadAllUsers();
+  });
+
+  // 포인트 지급 모달 닫기 버튼
+  const closeGivePointsModal = document.getElementById("close-give-points-modal");
+  closeGivePointsModal?.addEventListener("click", () => {
+    toggleModal("give-points-modal", false);
+  });
   // -------------------------------
   // 11) 로그인, 회원가입, 로그아웃
   // -------------------------------
+  // (예시)
   document.getElementById("login-submit")?.addEventListener("click", () => {
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value.trim();
@@ -400,6 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
     auth.createUserWithEmailAndPassword(email, password)
       .then((userCredential) => {
         const user = userCredential.user;
+        // Firestore에 user 문서 생성
         return db.collection("users").doc(user.uid).set({ name, email });
       })
       .then(() => {
@@ -411,6 +525,8 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(`회원가입 실패: ${error.message}`);
       });
   });
+
+  // 회원 정보 수정 (이름 변경)
   document.getElementById("save-user-info")?.addEventListener("click", () => {
     const newName = document.getElementById("edit-username").value.trim();
     if (!newName) {
@@ -421,7 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("로그인이 필요합니다.");
       return;
     }
-  
+
     // Firestore users/{uid} 문서 업데이트
     db.collection("users")
       .doc(currentUser.uid)
@@ -430,14 +546,13 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("이름이 변경되었습니다!");
         toggleModal("edit-user-modal", false);
         document.getElementById("edit-username").value = "";
-        // 필요 시 updateUI() 또는 다른 UI 갱신 로직
       })
       .catch((error) => {
         console.error("이름 업데이트 실패:", error);
         alert("이름 업데이트 중 오류가 발생했습니다.");
       });
   });
-  
+
   document.getElementById("logout-button")?.addEventListener("click", () => {
     auth.signOut()
       .then(() => {
@@ -455,7 +570,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 12) 모달 외부 클릭 등 설정
   // -------------------------------
   const setupModalEventListeners = () => {
-    // 로그인 모달
+    // 로그인 모달 열기
     document.getElementById("login-button")?.addEventListener("click", () => {
       toggleModal("login-modal", true);
     });
@@ -463,7 +578,7 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleModal("login-modal", false);
     });
 
-    // 회원가입 모달
+    // 회원가입 모달 열기
     document.getElementById("signup-button")?.addEventListener("click", () => {
       toggleModal("signup-modal", true);
     });
@@ -483,17 +598,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("close-view-modal")?.addEventListener("click", () => {
       toggleModal("view-modal", false);
     });
-// 모달 열기
-document.getElementById("edit-user-button")?.addEventListener("click", () => {
-  toggleModal("edit-user-modal", true);
-});
 
-// 모달 닫기
-document.getElementById("close-edit-user-modal")?.addEventListener("click", () => {
-  toggleModal("edit-user-modal", false);
-});
+    // 회원 정보 수정 모달
+    document.getElementById("edit-user-button")?.addEventListener("click", () => {
+      toggleModal("edit-user-modal", true);
+    });
+    document.getElementById("close-edit-user-modal")?.addEventListener("click", () => {
+      toggleModal("edit-user-modal", false);
+    });
 
-    // 모달 외부 클릭 시 닫기
+    // 모달 배경 클릭 시 닫기
     document.querySelectorAll(".modal").forEach((modal) => {
       modal.addEventListener("click", (e) => {
         if (e.target === modal) {
@@ -511,14 +625,20 @@ document.getElementById("close-edit-user-modal")?.addEventListener("click", () =
     currentUser = user;
     if (user) {
       console.log("로그인된 사용자:", user.email);
-      // 관리자 확인
+      // 관리자 여부 확인
       isAdmin = await checkIfAdmin();
     } else {
       console.log("사용자가 로그인하지 않았습니다.");
       isAdmin = false;
     }
     updateUI();
+    // 게시글 목록 로드
     loadPosts();
+
+    // 관리자면 전체 유저 목록 로드
+    if (isAdmin) {
+      loadAllUsers();
+    }
   });
 
   // -------------------------------
