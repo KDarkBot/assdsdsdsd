@@ -30,11 +30,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupButton = document.getElementById("signup-button");
   const logoutButton = document.getElementById("logout-button");
   const editUserButton = document.getElementById("edit-user-button");
-  const rankingButton = document.getElementById("ranking-button");
   const shopButton = document.getElementById("shop-button");
+  const openGivePointsButton = document.getElementById("open-give-points");
 
-  // 관리자 전용 섹션 (예: admin-section)
-  const adminSection = document.getElementById("admin-section");
+  // 모바일 버튼
+  const mobileLoginButton = document.getElementById("mobile-login-button");
+  const mobileSignupButton = document.getElementById("mobile-signup-button");
+  const mobileLogoutButton = document.getElementById("mobile-logout-button");
+  const mobileShopButton = document.getElementById("mobile-shop-button");
+  const mobileGivePointsButton = document.getElementById("mobile-give-points");
 
   if (currentUser) {
     // 로그인 상태
@@ -42,26 +46,88 @@ document.addEventListener("DOMContentLoaded", () => {
     signupButton?.classList.add("hidden");
     logoutButton?.classList.remove("hidden");
     editUserButton?.classList.remove("hidden");
-
-    // 상점 버튼: 로그인된 유저에게 보이게
     shopButton?.classList.remove("hidden");
+    mobileShopButton?.classList.remove("hidden");
 
+    // 관리자의 포인트 지급 버튼
     if (isAdmin) {
       openGivePointsButton?.classList.remove("hidden");
+      mobileGivePointsButton?.classList.remove("hidden");
     } else {
       openGivePointsButton?.classList.add("hidden");
+      mobileGivePointsButton?.classList.add("hidden");
     }
+
+    // 모바일 메뉴 상태 업데이트
+    mobileLoginButton?.classList.add("hidden");
+    mobileSignupButton?.classList.add("hidden");
+    mobileLogoutButton?.classList.remove("hidden");
   } else {
-    // 비로그인
+    // 비로그인 상태
     loginButton?.classList.remove("hidden");
     signupButton?.classList.remove("hidden");
     logoutButton?.classList.add("hidden");
     editUserButton?.classList.add("hidden");
     shopButton?.classList.add("hidden");
+    openGivePointsButton?.classList.add("hidden");
 
-    adminSection?.classList.add("hidden");
+    // 모바일 메뉴 상태 업데이트
+    mobileLoginButton?.classList.remove("hidden");
+    mobileSignupButton?.classList.remove("hidden");
+    mobileLogoutButton?.classList.add("hidden");
+    mobileShopButton?.classList.add("hidden");
+    mobileGivePointsButton?.classList.add("hidden");
   }
 };
+
+
+
+// 모바일 메뉴 이벤트 추가
+document.getElementById("mobile-login-button")?.addEventListener("click", () => {
+  toggleModal("login-modal", true);
+});
+
+document.getElementById("mobile-signup-button")?.addEventListener("click", () => {
+  toggleModal("signup-modal", true);
+});
+
+document.getElementById("mobile-logout-button")?.addEventListener("click", () => {
+  auth.signOut()
+    .then(() => {
+      alert("로그아웃 성공!");
+      updateUI();
+    })
+    .catch((error) => {
+      console.error("로그아웃 실패:", error);
+      alert("로그아웃 실패: " + error.message);
+    });
+});
+
+document.getElementById("mobile-edit-user-button")?.addEventListener("click", () => {
+  toggleModal("edit-user-modal", true);
+});
+
+document.getElementById("mobile-shop-button")?.addEventListener("click", () => {
+  toggleModal("shop-modal", true);
+});
+
+// 페이지 로드 시 UI 업데이트
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if (user) {
+    try {
+      const userDoc = await db.collection("users").doc(user.uid).get();
+      isAdmin = userDoc.exists && userDoc.data().role === "admin"; // 관리자 여부 확인
+    } catch (error) {
+      console.error("관리자 확인 오류:", error);
+      isAdmin = false;
+    }
+  } else {
+    isAdmin = false;
+  }
+  updateUI(); // 상태 업데이트
+});
+
   // -------------------------------
   // 3) 모달 열기/닫기 함수
   // -------------------------------
@@ -86,6 +152,46 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 4) 새 글 작성 (이미지 업로드 포함)
   // -------------------------------
+   // "게시물 뺏기" 구매 버튼
+   const buyStealPostItemButton = document.getElementById("buy-steal-post-item");
+
+   buyStealPostItemButton?.addEventListener("click", async () => {
+     if (!currentUser) {
+       alert("로그인이 필요합니다.");
+       return;
+     }
+ 
+     try {
+       const userDocRef = db.collection("users").doc(currentUser.uid);
+       const userDoc = await userDocRef.get();
+ 
+       if (userDoc.exists) {
+         const userData = userDoc.data();
+         const userPoints = userData.points || 0;
+ 
+         if (userPoints >= 100) {
+           // 포인트 차감
+           await userDocRef.update({
+             points: firebase.firestore.FieldValue.increment(-100),
+           });
+ 
+           // "게시물 뺏기" 아이템 추가 (예: userDoc에 stealItem 필드 업데이트)
+           await userDocRef.update({
+             stealItems: firebase.firestore.FieldValue.increment(1), // 아이템 개수 증가
+           });
+ 
+           alert("게시물 뺏기 아이템을 구매했습니다!");
+         } else {
+           alert("포인트가 부족합니다.");
+         }
+       } else {
+         alert("사용자 정보를 찾을 수 없습니다.");
+       }
+     } catch (error) {
+       console.error("구매 중 오류 발생:", error);
+       alert("구매 중 오류가 발생했습니다.");
+     }
+   });
   document.getElementById("save-post")?.addEventListener("click", async () => {
     const title = document.getElementById("post-title").value.trim();
     const content = document.getElementById("post-content").value.trim();
@@ -409,73 +515,108 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 10) 게시물 목록 불러오기(loadPosts)
   // -------------------------------
-  async function loadPosts() {
+  const loadPosts = async () => {
     const postList = document.getElementById("post-list");
-    if (!postList) return;
+    postList.innerHTML = "";
   
-    // 로그인 상태인 경우, 사용자 문서에서 deleteCredits(쿠폰 수) 불러오기
-    let userCredits = 0;
-    if (currentUser) {
+    try {
       const userDoc = await db.collection("users").doc(currentUser.uid).get();
-      if (userDoc.exists) {
-        userCredits = userDoc.data().deleteCredits || 0;
-      }
+      const userStealItems = userDoc.data().stealItems || 0; // 현재 사용자의 뺏기 아이템 수량
+  
+      const snapshot = await db.collection("posts").orderBy("timestamp", "desc").get();
+      let count = snapshot.size;
+  
+      snapshot.forEach((doc) => {
+        const post = doc.data();
+        const postId = doc.id;
+        const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
+  
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="py-4 px-6 hidden md:table-cell">${count--}</td>
+          <td class="py-4 px-6">${post.title || "제목 없음"}</td>
+          <td class="py-4 px-6">${post.author || "작성자 없음"}</td>
+          <td class="py-4 px-6 hidden md:table-cell">${timestamp}</td>
+          <td class="py-4 px-6">${post.likes || 0}</td>
+          <td class="py-4 px-6 text-left">
+            <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
+              보기
+            </button>
+            ${
+              (isAdmin || userCredits > 0)
+                ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
+                     삭제
+                   </button>`
+                : ""
+            }
+            ${
+              (userStealItems > 0)
+                ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
+                     뺏기
+                   </button>`
+                : ""
+            }
+          </td>
+        `;
+        postList.appendChild(row);
+      });
+    } catch (error) {
+      console.error("게시물 목록을 불러오는 중 오류 발생:", error);
     }
   
-    // 이제 posts 컬렉션을 불러온 뒤, 쿠폰 조건에 따라 삭제 버튼 표시
-    db.collection("posts")
-      .orderBy("timestamp", "desc")
-      .onSnapshot((snapshot) => {
-        postList.innerHTML = "";
-        let count = snapshot.size;
-  
-        snapshot.forEach((doc) => {
-          const post = doc.data();
-          const postId = doc.id;
-          const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-  
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td class="py-4 px-6 hidden md:table-cell">${count--}</td>
-            <td class="py-4 px-6">${post.title || "제목 없음"}</td>
-            <td class="py-4 px-6">${post.author || "작성자 없음"}</td>
-            <td class="py-4 px-6 hidden md:table-cell">${timestamp}</td>
-            <td class="py-4 px-6">${post.likes || 0}</td>
-            <td class="py-4 px-6 text-left">
-              <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
-                보기
-              </button>
-              ${ 
-                // 조건: (isAdmin) OR (userCredits > 0)
-                (isAdmin || userCredits > 0)
-                  ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
-                       삭제
-                     </button>`
-                  : ""
-              }
-            </td>
-          `;
-          postList.appendChild(row);
-        });
-  
-        // "보기" 버튼 이벤트
-        document.querySelectorAll(".view-post").forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            const pId = e.target.dataset.id;
-            viewPost(pId);
-          });
-        });
-  
-        // "삭제" 버튼 이벤트
-        document.querySelectorAll(".delete-post").forEach((delBtn) => {
-          delBtn.addEventListener("click", (e) => {
-            const pId = e.target.dataset.id;
-            deletePost(pId);
-          });
-        });
+    // "보기" 버튼 이벤트
+    document.querySelectorAll(".view-post").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const postId = e.target.dataset.id;
+        viewPost(postId);
       });
-  }
+    });
   
+    // "삭제" 버튼 이벤트
+    document.querySelectorAll(".delete-post").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const postId = e.target.dataset.id;
+        deletePost(postId);
+      });
+    });
+  
+    // "뺏기" 버튼 이벤트
+    document.querySelectorAll(".steal-post").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const postId = e.target.dataset.id;
+        stealPost(postId);
+      });
+    });
+  };
+  
+  const stealPost = async (postId) => {
+    try {
+      const userDoc = await db.collection("users").doc(currentUser.uid).get();
+      const userName = userDoc.data().name || "익명";
+      const userStealItems = userDoc.data().stealItems || 0;
+  
+      if (userStealItems <= 0) {
+        alert("뺏기 아이템이 부족합니다.");
+        return;
+      }
+  
+      // 게시물의 작성자 이름 변경
+      await db.collection("posts").doc(postId).update({
+        author: userName,
+      });
+  
+      // 사용자 뺏기 아이템 차감
+      await db.collection("users").doc(currentUser.uid).update({
+        stealItems: firebase.firestore.FieldValue.increment(-1),
+      });
+  
+      alert("게시물을 성공적으로 뺏었습니다!");
+      loadPosts(); // 게시물 목록 새로고침
+    } catch (error) {
+      console.error("게시물 뺏기 실패:", error);
+      alert("게시물을 뺏는 중 오류가 발생했습니다.");
+    }
+  };
   
   // -------------------------------
   // [신규 추가] 10.5) 모든 사용자 불러오기 + 포인트 지급
