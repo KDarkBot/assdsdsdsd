@@ -756,6 +756,83 @@ const getTopUser = async () => {
 
 
 
+// 포인트 전송 기능
+document.getElementById("confirm-send-points").addEventListener("click", async () => {
+  const targetName = document.getElementById("target-user-name").value.trim();
+  const pointsToSend = parseInt(document.getElementById("send-points-amount").value, 10);
+
+  if (!targetName || isNaN(pointsToSend) || pointsToSend <= 0) {
+    alert("유효한 이름과 포인트를 입력하세요.");
+    return;
+  }
+
+  if (!currentUser) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  try {
+    // 현재 사용자 정보 가져오기
+    const currentUserDoc = await db.collection("users").doc(currentUser.uid).get();
+    const currentUserData = currentUserDoc.data();
+    const currentPoints = currentUserData.points || 0;
+
+    if (currentPoints < pointsToSend) {
+      alert("포인트가 부족합니다.");
+      return;
+    }
+
+    // 받는 사용자 UID 가져오기
+    const targetUserSnapshot = await db.collection("users").where("name", "==", targetName).get();
+    if (targetUserSnapshot.empty) {
+      alert("받는 사용자를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (targetUserSnapshot.size > 1) {
+      alert("동일한 이름을 가진 사용자가 여러 명 있습니다. 관리자에게 문의하세요.");
+      return;
+    }
+
+    const targetUserDoc = targetUserSnapshot.docs[0];
+    const targetUserId = targetUserDoc.id;
+
+    // 포인트 전송 트랜잭션
+    await db.runTransaction(async (transaction) => {
+      const senderRef = db.collection("users").doc(currentUser.uid);
+      const receiverRef = db.collection("users").doc(targetUserId);
+
+      // 포인트 업데이트
+      transaction.update(senderRef, {
+        points: firebase.firestore.FieldValue.increment(-pointsToSend),
+      });
+      transaction.update(receiverRef, {
+        points: firebase.firestore.FieldValue.increment(pointsToSend),
+      });
+
+      // 트랜잭션 기록 (선택사항)
+      const transactionRef = db.collection("transactions").doc();
+      transaction.set(transactionRef, {
+        sender: currentUserData.name,
+        receiver: targetName,
+        points: pointsToSend,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+
+    alert("포인트 전송 완료!");
+    sendPointsModal.classList.add("hidden");
+    document.body.style.overflow = "auto";
+
+    // UI 업데이트
+    updateUI();
+  } catch (error) {
+    console.error("포인트 전송 중 오류 발생:", error);
+    alert("포인트 전송 중 오류가 발생했습니다.");
+  }
+});
+
+
 
 // 초기 데이터 로드
 auth.onAuthStateChanged(async (user) => {
@@ -847,7 +924,20 @@ auth.onAuthStateChanged(async (user) => {
       });
     });
   };
+// 포인트 전송 모달 열기/닫기
+const openSendPointsModal = document.getElementById("open-send-points-modal");
+const closeSendPointsModal = document.getElementById("close-send-points-modal");
+const sendPointsModal = document.getElementById("send-points-modal");
 
+openSendPointsModal.addEventListener("click", () => {
+  sendPointsModal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+});
+
+closeSendPointsModal.addEventListener("click", () => {
+  sendPointsModal.classList.add("hidden");
+  document.body.style.overflow = "auto";
+});
   // [신규 함수] 실제 포인트 지급 로직
 function givePointsToUser(targetUid) {
   // 지급할 포인트 양 입력
