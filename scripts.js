@@ -637,9 +637,7 @@ mobileOddEvenButton?.addEventListener("click", () => {
   // 10) 게시물 목록 불러오기(loadPosts)
   // -------------------------------
   // 상단에 추가
-  let isFetching = false; // 데이터를 가져오는 중인지 확인
-const POSTS_PER_PAGE = 10; // 페이지당 로드할 게시물 수
-let lastVisibleDoc = null
+
 const loadPosts = async () => {
   const postList = document.getElementById("post-list");
 
@@ -670,10 +668,15 @@ const loadPosts = async () => {
             const postId = doc.id;
             const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
 
-            const isTopUser = topUser === post.author; // 1등 사용자와 일치 여부 확인
+            // 1등 사용자 확인
+            const isTopUser = topUser === post.author;
 
+            // 행 생성
             const row = document.createElement("tr");
-            row.classList.add(isTopUser ? "top-user-gradient" : ""); // 1등 사용자에 클래스 추가
+            if (isTopUser) {
+              row.classList.add("top-user-row");
+            }
+
             row.innerHTML = `
               <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
               <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
@@ -685,16 +688,12 @@ const loadPosts = async () => {
                 </button>
                 ${
                   (isAdmin || userStealItems > 0)
-                    ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
-                         뺏기
-                       </button>`
+                    ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">뺏기</button>`
                     : ""
                 }
                 ${
                   isAdmin
-                    ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
-                         삭제
-                       </button>`
+                    ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">삭제</button>`
                     : ""
                 }
               </td>
@@ -732,6 +731,8 @@ const loadPosts = async () => {
     console.error("1등 사용자 가져오기 실패:", error);
   }
 };
+
+
 
 
 let topUserName = null; // 포인트 1등 사용자의 이름
