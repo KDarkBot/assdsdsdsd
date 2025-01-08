@@ -681,7 +681,7 @@ const loadPosts = async () => {
             <td class="py-2 px-4 text-sm sm:text-base truncate whitespace-nowrap">${post.title || "제목 없음"}</td>
             <td class="py-2 px-4 text-sm sm:text-base truncate whitespace-nowrap">${post.author || "작성자 없음"}</td>
             <td class="py-2 px-4 hidden md:table-cell text-sm sm:text-base whitespace-nowrap">${timestamp}</td>
-            <td class="py-2 px-4 text-center text-sm sm:text-base whitespace-nowrap">${post.likes || 0}</td>
+            <td class="py-2 px-4 text-center text-sm sm:text-base whitespace-nowrap">_ ${post.likes || 0} _</td>
             <td class="py-2 px-4 text-center whitespace-nowrap">
               <button class="view-post bg-indigo-500 text-white px-2 py-1 rounded hover:bg-indigo-600 transition-all duration-200" data-id="${postId}">
                 보기
