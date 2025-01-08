@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       // 포인트 차감 + deleteCredits(삭제 쿠폰) +1
       await db.collection("users").doc(currentUser.uid).update({
-        points: firebase.firestore.FieldValue.increment(cost),
+        points: firebase.firestore.FieldValue.increment(-cost),
         deleteCredits: firebase.firestore.FieldValue.increment(1)
       });
       alert("구매 완료! 이제 게시물 하나를 삭제할 수 있는 권한이 추가되었습니다.");
@@ -520,31 +520,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  function givePointsToUser(uid) {
-    const amountStr = prompt("지급할 포인트 양을 입력하세요", "10");
-    if (!amountStr) return;
+  // [신규 함수] 실제 포인트 지급 로직
+function givePointsToUser(targetUid) {
+  // 지급할 포인트 양 입력
+  const amountStr = prompt("지급할 포인트 양을 입력하세요", "10");
   
-    const amount = parseInt(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      alert("유효한 숫자를 입력하세요.");
-      return;
-    }
-  
-    db.collection("users").doc(uid)
-      .update({
-        points: firebase.firestore.FieldValue.increment(-amount),
-        deleteCredits: firebase.firestore.FieldValue.increment(1)
-      })
-      .then(() => {
-        alert("포인트가 지급(아이템 구매)되었습니다!");
-     
-      })
-      .catch((err) => {
-        console.error("포인트 지급 오류:", err);
-        alert("포인트 지급 중 오류가 발생했습니다.");
-      });
+  // 입력값 검증: 숫자로 변환
+  const amount = parseInt(amountStr, 10);
+  if (isNaN(amount) || amount <= 0) {
+    alert("유효한 양수를 입력하세요.");
+    return;
   }
-  
+
+  // Firestore에서 points 증가
+  db.collection("users").doc(targetUid)
+    .update({
+      points: firebase.firestore.FieldValue.increment(amount) // 양수만 허용됨
+    })
+    .then(() => {
+      alert(`${amount} 포인트가 지급되었습니다!`);
+      // 사용자 목록 재로딩
+      loadAllUsers();
+    })
+    .catch((err) => {
+      console.error("포인트 지급 오류:", err);
+      alert("포인트 지급 중 오류가 발생했습니다.");
+    });
+}
+
 
   // 포인트 지급 모달 열기 버튼
   const openGivePointsButton = document.getElementById("open-give-points");
