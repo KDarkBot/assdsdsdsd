@@ -1,21 +1,23 @@
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXST1zO_7Rzal1nmkS6mcdib2L6LVbHC8",
+  authDomain: "chatsystem1-b341f.firebaseapp.com",
+  databaseURL: "https://chatsystem1-b341f-default-rtdb.firebaseio.com",
+  projectId: "chatsystem1-b341f",
+  storageBucket: "chatsystem1-b341f.appspot.com",
+  messagingSenderId: "111851594752",
+  appId: "1:111851594752:web:ab7955b9b052ba907c64e5",
+  measurementId: "G-M14RE2SYWG"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 1) Firebase 초기화
   // -------------------------------
-  const firebaseConfig = {
-    apiKey: "AIzaSyAXST1zO_7Rzal1nmkS6mcdib2L6LVbHC8",
-    authDomain: "chatsystem1-b341f.firebaseapp.com",
-    databaseURL: "https://chatsystem1-b341f-default-rtdb.firebaseio.com",
-    projectId: "chatsystem1-b341f",
-    storageBucket: "chatsystem1-b341f.appspot.com",
-    messagingSenderId: "111851594752",
-    appId: "1:111851594752:web:ab7955b9b052ba907c64e5",
-    measurementId: "G-M14RE2SYWG"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  const storage = firebase.storage();
+ 
 
   let currentUser = null;
   let isAdmin = false;
@@ -182,7 +184,7 @@ auth.onAuthStateChanged(async (user) => {
            await userDocRef.update({
              points: firebase.firestore.FieldValue.increment(-100),
            });
- 
+           await onPointsSpent(100);
            // "게시물 뺏기" 아이템 추가 (예: userDoc에 stealItem 필드 업데이트)
            await userDocRef.update({
              stealItems: firebase.firestore.FieldValue.increment(1), // 아이템 개수 증가
@@ -298,6 +300,7 @@ auth.onAuthStateChanged(async (user) => {
         deleteCredits: firebase.firestore.FieldValue.increment(1)
       });
       alert("구매 완료! 이제 게시물 하나를 삭제할 수 있는 권한이 추가되었습니다.");
+      await onPointsSpent(cost); // 포인트 지출 이벤트 호출
       window.location.reload();
     } catch (err) {
       console.error("아이템 구매 오류:", err);
@@ -379,7 +382,25 @@ const enableRatingSection = async (postId) => {
     ratingSection?.classList.add("hidden");
   }
 };
+async function onPointsSpent(pointsSpent) {
+  // 현재 유저의 포인트 지출 정보 업데이트
+  const userDoc = await db.collection("users").doc(currentUser.uid).get();
+  const pointsUsed = userDoc.data().pointsUsed || 0;
+  const newPointsUsed = pointsUsed + pointsSpent;
+  const progress = Math.min((newPointsUsed / 100) * 100, 100); // 목표: 100 포인트 지출
 
+  await db.collection("users").doc(currentUser.uid).update({
+      pointsUsed: newPointsUsed,
+      [`badges.spender`]: {
+          progress: `${progress}%`,
+          achieved: newPointsUsed >= 100,
+      },
+  });
+
+  if (newPointsUsed >= 100) {
+      alert("🎉 포인트 지출 뱃지를 획득했습니다!");
+  }
+}
 
   // -------------------------------
   // 7) 댓글 작성
@@ -558,7 +579,7 @@ mobileOddEvenButton?.addEventListener("click", () => {
         }
         // 게시물 삭제
         await db.collection("posts").doc(postId).delete();
-        alert("게시물이 삭제되었습니다!");
+    
         loadPosts(); // 게시물 목록 새로고침
       } else {
         alert("삭제 권한(쿠폰)이 없습니다!");
@@ -701,6 +722,7 @@ const loadPosts = async () => {
           
 
             postList.appendChild(row);
+            
           });
 
           // 버튼 이벤트 추가
