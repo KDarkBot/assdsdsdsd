@@ -459,6 +459,11 @@ async function onPointsSpent(pointsSpent) {
   
     closeGambleModal.addEventListener("click", () => {
       toggleModal("odd-even-modal", false);
+
+      
+
+
+
     });
   // 모바일 메뉴에서 열기
 mobileOddEvenButton?.addEventListener("click", () => {
@@ -497,22 +502,30 @@ mobileOddEvenButton?.addEventListener("click", () => {
   
         if (win) {
           // 승리: 포인트 두 배
+       
           await db.collection("users").doc(currentUser.uid).update({
             points: firebase.firestore.FieldValue.increment(betAmount * 2),
           });
+         
           gambleResult.textContent = `🎉 승리! 숫자: ${result} | ${betAmount * 2} 포인트 획득!`;
           alert(`🎉 승리! 숫자: ${result} | ${betAmount * 2} 포인트 획득!`);
+          await updateUserPoints();
           gambleResult.classList.remove("hidden");
           gambleResult.classList.add("text-green-500");
+          await updateUserPoints();
         } else {
           // 패배: 포인트 차감
+         
           await db.collection("users").doc(currentUser.uid).update({
             points: firebase.firestore.FieldValue.increment(-betAmount),
           });
+          await updateUserPoints();
           gambleResult.textContent = `😢 패배! 숫자: ${result} | ${betAmount} 포인트 잃음.`;
           alert(`😢 패배! 숫자: ${result} | ${betAmount} 포인트 잃음.`)
+          await updateUserPoints();
           gambleResult.classList.remove("hidden");
           gambleResult.classList.add("text-red-500");
+          await updateUserPoints();
         }
       } catch (error) {
         console.error("도박 중 오류 발생:", error);
@@ -566,6 +579,7 @@ mobileOddEvenButton?.addEventListener("click", () => {
       console.error("포인트 업데이트 오류:", error);
     }
   }
+  
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
