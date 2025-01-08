@@ -17,6 +17,7 @@
       position: relative;
       overflow: hidden;
     }
+    
     .shine::after {
       content: '';
       position: absolute;
@@ -97,6 +98,31 @@
 
   body.modal-open {
     overflow: hidden; /* 모달이 열릴 때 배경 스크롤 방지 */
+  }
+    /* 테이블 행 높이 제한 */
+    .dynamic-content tr {
+    max-height: 50px; /* 각 행의 최대 높이 설정 */
+    overflow: hidden;
+  }
+
+  /* 텍스트가 넘칠 경우 말줄임 */
+  .truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 테이블 본문에 세로 스크롤 추가 */
+  .dynamic-content {
+    max-height: 500px; /* 동적 콘텐츠 최대 높이 제한 */
+    overflow-y: auto; /* 세로 스크롤 허용 */
+    display: block;
+  }
+
+  /* 전체 테이블 가로 스크롤 가능 */
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
   }
   </style>
 </head>
@@ -195,7 +221,11 @@
    >
      <i class="fas fa-store text-white"></i> 상점
    </button>
- 
+   <button id="mobile-send-points-button" class="btn w-full flex items-center gap-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300">
+    <i class="fas fa-coins text-yellow-300 mr-2"></i> 포인트 보내기
+  </button>
+  
+  
    <!-- 홀짝 도박 버튼 -->
    <button
      id="mobile-odd-even-button"
@@ -203,6 +233,7 @@
    >
      <i class="fas fa-dice text-white"></i> 홀짝 도박
    </button>
+ 
  </nav>
  
  
