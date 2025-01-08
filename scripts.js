@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       // 포인트 차감 + deleteCredits(삭제 쿠폰) +1
       await db.collection("users").doc(currentUser.uid).update({
-        points: firebase.firestore.FieldValue.increment(-cost),
+        points: firebase.firestore.FieldValue.increment(cost),
         deleteCredits: firebase.firestore.FieldValue.increment(1)
       });
       alert("구매 완료! 이제 게시물 하나를 삭제할 수 있는 권한이 추가되었습니다.");
