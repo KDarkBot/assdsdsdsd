@@ -133,7 +133,10 @@
         <button id="open-give-points" class="px-4 py-2 text-sm bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full hover-scale shadow-md transition-all duration-300 hidden">
           <i class="fas fa-coins mr-2 text-yellow-400"></i> 포인트 지급
         </button>
-        
+        <!-- 포인트 전송 열기 버튼 -->
+<button id="open-send-points-modal" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+  포인트 보내기
+</button>
       </nav>
       <!-- 모바일 메뉴 -->
       <button id="mobile-menu" class="text-gray-700 md:hidden">
@@ -205,6 +208,37 @@
  
 
   </header>
+  <!-- 포인트 전송 모달 -->
+<div id="send-points-modal" class="modal fixed inset-0 flex items-center justify-center bg-black/50 hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative">
+    <h3 class="text-lg font-bold mb-4">포인트 보내기</h3>
+    <label for="target-user-name" class="block text-sm font-medium text-gray-700 mb-2">받는 사람 이름</label>
+<input
+  type="text"
+  id="target-user-name"
+  class="w-full p-2 border rounded-lg mb-4"
+  placeholder="이름 입력"
+  required
+/>
+
+    <label for="send-points-amount" class="block text-sm font-medium text-gray-700 mb-2">보낼 포인트</label>
+    <input
+      type="number"
+      id="send-points-amount"
+      class="w-full p-2 border rounded-lg mb-4"
+      placeholder="포인트 입력"
+      required
+    />
+    <div class="flex justify-end gap-2">
+      <button id="confirm-send-points" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        전송
+      </button>
+      <button id="close-send-points-modal" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+        닫기
+      </button>
+    </div>
+  </div>
+</div>
 <!-- 홀짝 도박 모달 -->
 <div id="odd-even-modal" class="modal fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
   <div class="modal-content bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 transform scale-95">
