@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>포인트 랭킹</title>
+  <!-- Tailwind CSS (필요시) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+  <!-- 상단 헤더/네비게이션 -->
+  <header class="bg-white shadow-md p-4">
+    <nav class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold text-indigo-600">포인트 랭킹</h1>
+      <!-- 메인으로 돌아가는 버튼 -->
+      <button id="go-back-button" class="bg-gray-300 px-3 py-2 rounded hover:bg-gray-400">
+        메인으로
+      </button>
+    </nav>
+  </header>
+
+  <main class="container mx-auto p-4">
+    <h2 class="text-2xl font-semibold mb-4">포인트 랭킹 보드</h2>
+    <!-- 랭킹 표시 영역 -->
+    <ul id="ranking-list" class="space-y-2">
+      <!-- ranking.js 로딩 시 loadRanking()에서 동적 생성 -->
+    </ul>
+  </main>
+
+  <!-- Firebase SDKs (Firebase App, Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- ranking.js (아래에서 정의) -->
+  <script src="ranking.js" defer></script>
+</body>
+</html>
