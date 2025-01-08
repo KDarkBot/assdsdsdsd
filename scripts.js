@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mobileLogoutButton = document.getElementById("mobile-logout-button");
   const mobileShopButton = document.getElementById("mobile-shop-button");
   const mobileGivePointsButton = document.getElementById("mobile-give-points");
-
+  const mobileeditUserButton = document.getElementById("mobile-edit-user-button");
   if (currentUser) {
     // 로그인 상태
     loginButton?.classList.add("hidden");
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     editUserButton?.classList.remove("hidden");
     shopButton?.classList.remove("hidden");
     mobileShopButton?.classList.remove("hidden");
-
+    mobileeditUserButton?.classList.remove("hidden");
     // 관리자의 포인트 지급 버튼
     if (isAdmin) {
       openGivePointsButton?.classList.remove("hidden");
@@ -77,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileLogoutButton?.classList.add("hidden");
     mobileShopButton?.classList.add("hidden");
     mobileGivePointsButton?.classList.add("hidden");
+    mobileeditUserButton?.classList.add("hidden");
   }
 };
 
@@ -413,6 +414,7 @@ const enableRatingSection = async (postId) => {
   };
  
     // 홀짝 도박 버튼 클릭 이벤트
+    const oddEvenModal = document.getElementById("odd-even-modal");
     const gambleButton = document.getElementById("odd-even-gamble-button");
     const gambleModal = document.getElementById("odd-even-modal");
     const closeGambleModal = document.getElementById("close-odd-even-modal");
@@ -420,7 +422,7 @@ const enableRatingSection = async (postId) => {
     const gambleResult = document.getElementById("gamble-result");
     const betOddButton = document.getElementById("bet-odd");
     const betEvenButton = document.getElementById("bet-even");
-  
+    const mobileOddEvenButton = document.getElementById("mobile-odd-even-button");
     gambleButton.addEventListener("click", () => {
       toggleModal("odd-even-modal", true);
       gambleResult.classList.add("hidden");
@@ -430,7 +432,12 @@ const enableRatingSection = async (postId) => {
     closeGambleModal.addEventListener("click", () => {
       toggleModal("odd-even-modal", false);
     });
-  
+  // 모바일 메뉴에서 열기
+mobileOddEvenButton?.addEventListener("click", () => {
+  oddEvenModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+});
+
     // 홀/짝 베팅 함수
     const placeBet = async (choice) => {
       if (!currentUser) {
