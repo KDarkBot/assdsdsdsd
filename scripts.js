@@ -319,30 +319,59 @@ auth.onAuthStateChanged(async (user) => {
   // -------------------------------
   // 6) 별점 기능
   // -------------------------------
-  const enableRatingSection = async (postId) => {
-    const ratingSection = document.getElementById("rating-section");
-    const adminCheck = await checkIfAdmin();
+// 별점 버튼 이벤트 핸들러
+const enableRatingSection = async (postId) => {
+  const ratingSection = document.getElementById("rating-section");
+  const adminCheck = await checkIfAdmin();
 
-    if (adminCheck) {
-      ratingSection?.classList.remove("hidden");
-      document.querySelectorAll(".rate").forEach((button) => {
-        button.onclick = () => {
-          const rating = parseInt(button.dataset.rating);
-          db.collection("posts").doc(postId).update({ rating })
-            .then(() => {
-              alert(`${rating}점을 부여했습니다.`);
-              document.getElementById("view-rating").textContent = `${rating}점`;
-            })
-            .catch((error) => {
-              console.error("별점 저장 실패:", error);
-              alert(`별점 저장 실패: ${error.message}`);
-            });
-        };
-      });
-    } else {
-      ratingSection?.classList.add("hidden");
-    }
-  };
+  if (adminCheck) {
+    ratingSection?.classList.remove("hidden");
+    document.querySelectorAll(".rate").forEach((button) => {
+      button.onclick = async () => {
+        const rating = parseInt(button.dataset.rating);
+
+        try {
+          // 게시물 데이터 가져오기
+          const postDoc = await db.collection("posts").doc(postId).get();
+          if (!postDoc.exists) {
+            alert("게시물을 찾을 수 없습니다.");
+            return;
+          }
+
+          const postData = postDoc.data();
+          const authorName = postData.author;
+
+          // 게시물의 작성자 UID 가져오기
+          const usersSnapshot = await db.collection("users").where("name", "==", authorName).get();
+          if (usersSnapshot.empty) {
+            alert("작성자를 찾을 수 없습니다.");
+            return;
+          }
+
+          const authorDoc = usersSnapshot.docs[0]; // 작성자 데이터
+          const authorUid = authorDoc.id;
+
+          // Firestore에서 별점 업데이트
+          await db.collection("posts").doc(postId).update({ rating });
+
+          // 작성자에게 포인트 지급
+          await db.collection("users").doc(authorUid).update({
+            points: firebase.firestore.FieldValue.increment(rating),
+          });
+
+          alert(`${rating}점을 부여했습니다! 작성자에게 ${rating} 포인트가 지급되었습니다.`);
+          document.getElementById("view-rating").textContent = `${rating}점`;
+        } catch (error) {
+          console.error("별점 부여 중 오류 발생:", error);
+          alert(`별점 부여 중 오류가 발생했습니다: ${error.message}`);
+        }
+      };
+    });
+  } else {
+    ratingSection?.classList.add("hidden");
+  }
+};
+
 
   // -------------------------------
   // 7) 댓글 작성
@@ -382,7 +411,85 @@ auth.onAuthStateChanged(async (user) => {
         });
     });
   };
+ 
+    // 홀짝 도박 버튼 클릭 이벤트
+    const gambleButton = document.getElementById("odd-even-gamble-button");
+    const gambleModal = document.getElementById("odd-even-modal");
+    const closeGambleModal = document.getElementById("close-odd-even-modal");
+    const betAmountInput = document.getElementById("bet-amount");
+    const gambleResult = document.getElementById("gamble-result");
+    const betOddButton = document.getElementById("bet-odd");
+    const betEvenButton = document.getElementById("bet-even");
+  
+    gambleButton.addEventListener("click", () => {
+      toggleModal("odd-even-modal", true);
+      gambleResult.classList.add("hidden");
+      betAmountInput.value = ""; // 초기화
+    });
+  
+    closeGambleModal.addEventListener("click", () => {
+      toggleModal("odd-even-modal", false);
+    });
+  
+    // 홀/짝 베팅 함수
+    const placeBet = async (choice) => {
+      if (!currentUser) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+  
+      const betAmount = parseInt(betAmountInput.value, 10);
+      if (isNaN(betAmount) || betAmount <= 0) {
+        alert("유효한 베팅 금액을 입력하세요.");
+        return;
+      }
+  
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const userPoints = userDoc.data().points || 0;
+  
+        if (userPoints < betAmount) {
+          alert("포인트가 부족합니다.");
+          return;
+        }
+  
+        // 랜덤 결과 생성 (1~100 사이의 숫자)
+        const result = Math.floor(Math.random() * 100) + 1;
+        const isEven = result % 2 === 0;
+  
+        // 결과 확인
+        const win = (choice === "odd" && !isEven) || (choice === "even" && isEven);
+  
+        if (win) {
+          // 승리: 포인트 두 배
+          await db.collection("users").doc(currentUser.uid).update({
+            points: firebase.firestore.FieldValue.increment(betAmount * 2),
+          });
+          gambleResult.textContent = `🎉 승리! 숫자: ${result} | ${betAmount * 2} 포인트 획득!`;
+          alert(`🎉 승리! 숫자: ${result} | ${betAmount * 2} 포인트 획득!`);
+          gambleResult.classList.remove("hidden");
+          gambleResult.classList.add("text-green-500");
+        } else {
+          // 패배: 포인트 차감
+          await db.collection("users").doc(currentUser.uid).update({
+            points: firebase.firestore.FieldValue.increment(-betAmount),
+          });
+          gambleResult.textContent = `😢 패배! 숫자: ${result} | ${betAmount} 포인트 잃음.`;
+          alert(`😢 패배! 숫자: ${result} | ${betAmount} 포인트 잃음.`)
+          gambleResult.classList.remove("hidden");
+          gambleResult.classList.add("text-red-500");
+        }
+      } catch (error) {
+        console.error("도박 중 오류 발생:", error);
+        alert("도박 중 오류가 발생했습니다.");
+      }
+    };
+  
+    // 홀/짝 버튼 이벤트 추가
+    betOddButton.addEventListener("click", () => placeBet("odd"));
+    betEvenButton.addEventListener("click", () => placeBet("even"));
 
+  
   // -------------------------------
   // 8) 댓글 실시간 불러오기
   // -------------------------------
