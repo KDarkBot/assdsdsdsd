@@ -30,8 +30,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupButton = document.getElementById("signup-button");
   const logoutButton = document.getElementById("logout-button");
   const editUserButton = document.getElementById("edit-user-button");
-  // 추가: 포인트 지급 버튼
-  const openGivePointsButton = document.getElementById("open-give-points");
+  const rankingButton = document.getElementById("ranking-button");
+  const shopButton = document.getElementById("shop-button");
+
+  // 관리자 전용 섹션 (예: admin-section)
+  const adminSection = document.getElementById("admin-section");
 
   if (currentUser) {
     // 로그인 상태
@@ -40,7 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutButton?.classList.remove("hidden");
     editUserButton?.classList.remove("hidden");
 
-    // 관리자면 "포인트 지급" 버튼 보이기
+    // 상점 버튼: 로그인된 유저에게 보이게
+    shopButton?.classList.remove("hidden");
+
     if (isAdmin) {
       openGivePointsButton?.classList.remove("hidden");
     } else {
@@ -52,7 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     signupButton?.classList.remove("hidden");
     logoutButton?.classList.add("hidden");
     editUserButton?.classList.add("hidden");
-    openGivePointsButton?.classList.add("hidden");
+    shopButton?.classList.add("hidden");
+
+    adminSection?.classList.add("hidden");
   }
 };
   // -------------------------------
@@ -129,6 +136,58 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("글 작성 중 오류 발생:", error);
       alert("글 작성 중 오류가 발생했습니다.");
+    }
+  });
+  const shopButton = document.getElementById("shop-button");
+  const shopModal = document.getElementById("shop-modal");
+  const closeShopModal = document.getElementById("close-shop-modal");
+
+  shopButton?.addEventListener("click", () => {
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    // 상점 모달 열기
+    toggleModal("shop-modal", true);
+  });
+
+  closeShopModal?.addEventListener("click", () => {
+    toggleModal("shop-modal", false);
+  });
+
+  // [새로 추가] "게시물 하나 지우기" 아이템 구매 로직
+  const buyDeletePostItem = document.getElementById("buy-delete-post-item");
+  buyDeletePostItem?.addEventListener("click", async () => {
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    try {
+      // 구매 비용(예: 50 포인트)
+      const cost = 50;
+      // 사용자 정보 가져오기
+      const userDoc = await db.collection("users").doc(currentUser.uid).get();
+      if (!userDoc.exists) {
+        alert("사용자 정보가 존재하지 않습니다.");
+        return;
+      }
+      const userData = userDoc.data();
+      const currentPoints = userData.points || 0;
+
+      if (currentPoints < cost) {
+        alert("포인트가 부족합니다!");
+        return;
+      }
+      // 포인트 차감 + deleteCredits(삭제 쿠폰) +1
+      await db.collection("users").doc(currentUser.uid).update({
+        points: firebase.firestore.FieldValue.increment(-cost),
+        deleteCredits: firebase.firestore.FieldValue.increment(1)
+      });
+      alert("구매 완료! 이제 게시물 하나를 삭제할 수 있는 권한이 추가되었습니다.");
+      window.location.reload();
+    } catch (err) {
+      console.error("아이템 구매 오류:", err);
+      alert("아이템 구매 중 오류가 발생했습니다.");
     }
   });
 
@@ -249,17 +308,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 8.1) 게시물 삭제
   // -------------------------------
-  const deletePost = (postId) => {
-    db.collection("posts").doc(postId).delete()
-      .then(() => {
-        alert("게시물이 삭제되었습니다.");
-      })
-      .catch((error) => {
-        console.error("게시물 삭제 오류:", error);
-        alert("게시물 삭제 중 오류가 발생했습니다.");
-      });
-  };
-
+  async function deletePost(postId) {
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    try {
+      const userDoc = await db.collection("users").doc(currentUser.uid).get();
+      if (!userDoc.exists) {
+        alert("사용자 정보가 없습니다.");
+        return;
+      }
+      const userData = userDoc.data();
+      const credits = userData.deleteCredits || 0;
+  
+      if (isAdmin || credits > 0) {
+        // 관리자 아닐 시 쿠폰 1 소모
+        if (!isAdmin) {
+          await db.collection("users").doc(currentUser.uid).update({
+            deleteCredits: firebase.firestore.FieldValue.increment(-1)
+          });
+        }
+        // 게시물 삭제
+        await db.collection("posts").doc(postId).delete();
+        alert("게시물이 삭제되었습니다!");
+        // 새로고침
+        window.location.reload();
+      } else {
+        alert("삭제 권한(쿠폰)이 없습니다!");
+      }
+    } catch (err) {
+      console.error("게시물 삭제 오류:", err);
+      alert("게시물 삭제 중 오류가 발생했습니다.");
+    }
+  }
+  
   // -------------------------------
   // 9) 게시물 보기(viewPost)
   // -------------------------------
@@ -326,10 +409,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   // 10) 게시물 목록 불러오기(loadPosts)
   // -------------------------------
-  const loadPosts = () => {
+  async function loadPosts() {
     const postList = document.getElementById("post-list");
     if (!postList) return;
-
+  
+    // 로그인 상태인 경우, 사용자 문서에서 deleteCredits(쿠폰 수) 불러오기
+    let userCredits = 0;
+    if (currentUser) {
+      const userDoc = await db.collection("users").doc(currentUser.uid).get();
+      if (userDoc.exists) {
+        userCredits = userDoc.data().deleteCredits || 0;
+      }
+    }
+  
+    // 이제 posts 컬렉션을 불러온 뒤, 쿠폰 조건에 따라 삭제 버튼 표시
     db.collection("posts")
       .orderBy("timestamp", "desc")
       .onSnapshot((snapshot) => {
@@ -338,56 +431,52 @@ document.addEventListener("DOMContentLoaded", () => {
   
         snapshot.forEach((doc) => {
           const post = doc.data();
+          const postId = doc.id;
           const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-
+  
           const row = document.createElement("tr");
           row.innerHTML = `
-            <!-- NO 열 (모바일 숨김) -->
             <td class="py-4 px-6 hidden md:table-cell">${count--}</td>
             <td class="py-4 px-6">${post.title || "제목 없음"}</td>
             <td class="py-4 px-6">${post.author || "작성자 없음"}</td>
             <td class="py-4 px-6 hidden md:table-cell">${timestamp}</td>
             <td class="py-4 px-6">${post.likes || 0}</td>
-            <!-- 보기 + (관리자만) 삭제 버튼 -->
             <td class="py-4 px-6 text-left">
-              <button 
-                class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" 
-                data-id="${doc.id}"
-              >
+              <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
                 보기
               </button>
-              ${
-                isAdmin
-                  ? `<button 
-                      class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" 
-                      data-id="${doc.id}">
-                      삭제
-                    </button>`
+              ${ 
+                // 조건: (isAdmin) OR (userCredits > 0)
+                (isAdmin || userCredits > 0)
+                  ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
+                       삭제
+                     </button>`
                   : ""
               }
             </td>
           `;
           postList.appendChild(row);
         });
-
+  
         // "보기" 버튼 이벤트
         document.querySelectorAll(".view-post").forEach((btn) => {
           btn.addEventListener("click", (e) => {
-            const postId = e.target.dataset.id;
-            viewPost(postId);
+            const pId = e.target.dataset.id;
+            viewPost(pId);
           });
         });
-
-        // "삭제" 버튼 이벤트 (관리자만 표시됨)
+  
+        // "삭제" 버튼 이벤트
         document.querySelectorAll(".delete-post").forEach((delBtn) => {
           delBtn.addEventListener("click", (e) => {
-            const postId = e.target.dataset.id;
-            deletePost(postId);
+            const pId = e.target.dataset.id;
+            deletePost(pId);
           });
         });
       });
-  };
-
+  }
+  
+  
   // -------------------------------
   // [신규 추가] 10.5) 모든 사용자 불러오기 + 포인트 지급
   // -------------------------------
@@ -431,31 +520,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
- // [추가] 포인트 지급 로직
- function givePointsToUser(uid) {
-  const amountStr = prompt("지급할 포인트 양을 입력하세요", "10");
-  if (!amountStr) return;
-
-  const amount = parseInt(amountStr);
-  if (isNaN(amount) || amount <= 0) {
-    alert("유효한 숫자를 입력하세요.");
-    return;
+  function givePointsToUser(uid) {
+    const amountStr = prompt("지급할 포인트 양을 입력하세요", "10");
+    if (!amountStr) return;
+  
+    const amount = parseInt(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      alert("유효한 숫자를 입력하세요.");
+      return;
+    }
+  
+    db.collection("users").doc(uid)
+      .update({
+        points: firebase.firestore.FieldValue.increment(-amount),
+        deleteCredits: firebase.firestore.FieldValue.increment(1)
+      })
+      .then(() => {
+        alert("포인트가 지급(아이템 구매)되었습니다!");
+     
+      })
+      .catch((err) => {
+        console.error("포인트 지급 오류:", err);
+        alert("포인트 지급 중 오류가 발생했습니다.");
+      });
   }
-
-  db.collection("users").doc(uid)
-    .update({
-      points: firebase.firestore.FieldValue.increment(amount)
-    })
-    .then(() => {
-      alert("포인트가 지급되었습니다!");
-      // 목록 다시 불러와 갱신
-      loadAllUsers();
-    })
-    .catch((err) => {
-      console.error("포인트 지급 오류:", err);
-      alert("포인트 지급 중 오류가 발생했습니다.");
-    });
-}
+  
 
   // 포인트 지급 모달 열기 버튼
   const openGivePointsButton = document.getElementById("open-give-points");
