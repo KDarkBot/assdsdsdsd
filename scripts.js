@@ -29,15 +29,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginButton = document.getElementById("login-button");
     const signupButton = document.getElementById("signup-button");
     const logoutButton = document.getElementById("logout-button");
-
+    const editUserButton = document.getElementById("edit-user-button");
     if (currentUser) {
       loginButton?.classList.add("hidden");
       signupButton?.classList.add("hidden");
       logoutButton?.classList.remove("hidden");
+      editUserButton?.classList.remove("hidden");
     } else {
       loginButton?.classList.remove("hidden");
       signupButton?.classList.remove("hidden");
       logoutButton?.classList.add("hidden");
+      editUserButton?.classList.add("hidden");
     }
   };
 
@@ -226,7 +228,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
   };
-
+  const deletePost = (postId) => {
+    // Firestore 문서 삭제
+    db.collection("posts").doc(postId).delete()
+      .then(() => {
+     
+        // onSnapshot 실시간 구독 중이면 목록 자동 갱신
+      })
+      .catch((error) => {
+        console.error("게시물 삭제 오류:", error);
+        alert("게시물 삭제 중 오류가 발생했습니다.");
+      });
+  };
+  
   // -------------------------------
   // 9) 게시물 보기(viewPost)
   // -------------------------------
@@ -296,54 +310,59 @@ document.addEventListener("DOMContentLoaded", () => {
       .onSnapshot((snapshot) => {
         postList.innerHTML = "";
         let count = snapshot.size;
-
+  
         snapshot.forEach((doc) => {
           const post = doc.data();
           const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-
-          const row = document.createElement("tr");
   
+          const row = document.createElement("tr");
           row.innerHTML = `
             <!-- NO 열 (모바일 숨김) -->
             <td class="py-4 px-6 hidden md:table-cell">${count--}</td>
-            <!-- 제목 열 (truncate 예시) -->
-            <td class="py-4 px-6">
-              <div class="max-w-[80px] overflow-hidden whitespace-nowrap text-ellipsis">
-                ${post.title || "제목 없음"}
-              </div>
-            </td>
-            <!-- 작성자 -->
+            <td class="py-4 px-6">${post.title || "제목 없음"}</td>
             <td class="py-4 px-6">${post.author || "작성자 없음"}</td>
-            <!-- 작성시간 (모바일 숨김) -->
-            <td class="py-4 px-6 hidden md:table-cell">
-              ${timestamp}
-            </td>
+            <td class="py-4 px-6 hidden md:table-cell">${timestamp}</td>
             <td class="py-4 px-6">${post.likes || 0}</td>
-
-          <!-- 보기 버튼 열 -->
-<td class="py-4 px-6 text-left">
-  <!-- 반응형 크기 조절 + 왼쪽으로 -4px 이동 -->
-  <button 
-    class="view-post bg-indigo-500 text-white px-2 sm:px-3 md:px-4 py-1 sm:py-1 md:py-2 text-xs sm:text-sm md:text-base rounded-lg hover:bg-indigo-600 ml-[-12px]"
-    data-id="${doc.id}"
-  >
-    보기
-  </button>
-</td>
-
+            <!-- 보기 + (관리자만) 삭제 버튼 -->
+            <td class="py-4 px-6 text-left">
+              <button 
+                class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" 
+                data-id="${doc.id}"
+              >
+                보기
+              </button>
+              ${
+                isAdmin
+                  ? `<button 
+                      class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" 
+                      data-id="${doc.id}">
+                      삭제
+                    </button>`
+                  : ""
+              }
+            </td>
           `;
           postList.appendChild(row);
         });
-
+  
         // "보기" 버튼 이벤트
-        document.querySelectorAll(".view-post").forEach((button) => {
-          button.addEventListener("click", (e) => {
+        document.querySelectorAll(".view-post").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
             const postId = e.target.dataset.id;
             viewPost(postId);
           });
         });
+  
+        // "삭제" 버튼 이벤트 (관리자만 표시됨)
+        document.querySelectorAll(".delete-post").forEach((delBtn) => {
+          delBtn.addEventListener("click", (e) => {
+            const postId = e.target.dataset.id;
+            deletePost(postId);
+          });
+        });
       });
   };
+  
   
   // -------------------------------
   // 11) 로그인, 회원가입, 로그아웃
@@ -392,7 +411,33 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(`회원가입 실패: ${error.message}`);
       });
   });
-
+  document.getElementById("save-user-info")?.addEventListener("click", () => {
+    const newName = document.getElementById("edit-username").value.trim();
+    if (!newName) {
+      alert("새 이름을 입력하세요.");
+      return;
+    }
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+  
+    // Firestore users/{uid} 문서 업데이트
+    db.collection("users")
+      .doc(currentUser.uid)
+      .update({ name: newName })
+      .then(() => {
+        alert("이름이 변경되었습니다!");
+        toggleModal("edit-user-modal", false);
+        document.getElementById("edit-username").value = "";
+        // 필요 시 updateUI() 또는 다른 UI 갱신 로직
+      })
+      .catch((error) => {
+        console.error("이름 업데이트 실패:", error);
+        alert("이름 업데이트 중 오류가 발생했습니다.");
+      });
+  });
+  
   document.getElementById("logout-button")?.addEventListener("click", () => {
     auth.signOut()
       .then(() => {
@@ -438,6 +483,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("close-view-modal")?.addEventListener("click", () => {
       toggleModal("view-modal", false);
     });
+// 모달 열기
+document.getElementById("edit-user-button")?.addEventListener("click", () => {
+  toggleModal("edit-user-modal", true);
+});
+
+// 모달 닫기
+document.getElementById("close-edit-user-modal")?.addEventListener("click", () => {
+  toggleModal("edit-user-modal", false);
+});
 
     // 모달 외부 클릭 시 닫기
     document.querySelectorAll(".modal").forEach((modal) => {
