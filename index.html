@@ -395,7 +395,18 @@
    </div>
  </div>
 </div>
-
+<!-- 포인트 지급 모달 -->
+<div id="give-points-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
+  <div class="bg-white rounded-lg shadow-lg p-4 md:p-6 max-w-md w-full relative">
+    <h3 class="text-lg font-bold mb-4 text-gray-700">포인트 지급</h3>
+    <button id="close-give-points-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+      X
+    </button>
+    <div id="user-list" class="space-y-2 max-h-96 overflow-y-auto">
+      <!-- scripts.js에서 loadAllUsers()로 유저 목록 동적 생성 -->
+    </div>
+  </div>
+</div>
   <script>
     // 모달 애니메이션 처리
     document.querySelectorAll('.modal').forEach(modal => {
