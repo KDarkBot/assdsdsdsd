@@ -99,18 +99,70 @@
         <i class="fas fa-bars text-2xl"></i>
       </button>
     </div>
-    <nav id="mobile-nav" class="hidden md:hidden flex-col items-center gap-4 p-4 bg-white shadow-md">
-      <button id="mobile-edit-user-button" class="btn hidden"><i class="fas fa-user-edit mr-2"></i> 회원정보</button>
-      <button id="mobile-login-button" class="btn"><i class="fas fa-sign-in-alt mr-2"></i> 로그인</button>
-      <button id="mobile-signup-button" class="btn"><i class="fas fa-user-plus mr-2"></i> 회원가입</button>
-      <button id="mobile-logout-button" class="btn hidden"><i class="fas fa-sign-out-alt mr-2"></i> 로그아웃</button>
-      <button id="mobile-ranking-button" class="btn"><i class="fas fa-trophy mr-2"></i> 랭킹</button>
-      <button id="mobile-shop-button" class="btn hidden"><i class="fas fa-store mr-2"></i> 상점</button>
-      <button id="mobile-open-give-points" class="btn hidden">
-        <i class="fas fa-coins mr-2 text-yellow-400"></i> 포인트 지급
-      </button>
-      
-    </nav>
+   <!-- 모바일 메뉴 -->
+   <nav
+   id="mobile-nav"
+   class="hidden md:hidden flex-col items-center gap-4 p-4 bg-gradient-to-r from-blue-100 to-white shadow-lg rounded-lg border border-gray-200"
+ >
+   <!-- 회원정보 버튼 -->
+   <button
+     id="mobile-edit-user-button"
+     class="btn hidden w-full flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-user-edit text-white"></i> 회원정보
+   </button>
+ 
+   <!-- 로그인 버튼 -->
+   <button
+     id="mobile-login-button"
+     class="btn w-full flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-sign-in-alt text-white"></i> 로그인
+   </button>
+ 
+   <!-- 회원가입 버튼 -->
+   <button
+     id="mobile-signup-button"
+     class="btn w-full flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-user-plus text-white"></i> 회원가입
+   </button>
+ 
+   <!-- 로그아웃 버튼 -->
+   <button
+     id="mobile-logout-button"
+     class="btn hidden w-full flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-sign-out-alt text-white"></i> 로그아웃
+   </button>
+ 
+   <!-- 랭킹 버튼 -->
+   <button
+     id="mobile-ranking-button"
+     class="btn w-full flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-trophy text-white"></i> 랭킹
+   </button>
+ 
+   <!-- 상점 버튼 -->
+   <button
+     id="mobile-shop-button"
+     class="btn hidden w-full flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-store text-white"></i> 상점
+   </button>
+ 
+   <!-- 홀짝 도박 버튼 -->
+   <button
+     id="mobile-odd-even-button"
+     class="btn w-full flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+   >
+     <i class="fas fa-dice text-white"></i> 홀짝 도박
+   </button>
+ </nav>
+ 
+ 
+
   </header>
 <!-- 홀짝 도박 모달 -->
 <div id="odd-even-modal" class="modal fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
