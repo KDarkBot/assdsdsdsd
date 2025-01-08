@@ -32,7 +32,48 @@
       );
       animation: shine 2s infinite;
     }
-    
+    .top-user-gradient {
+    background: linear-gradient(
+      135deg,
+      #ff9a9e,
+      #fad0c4,
+      #fbc2eb,
+      #a18cd1,
+      #fad0c4,
+      #ff9a9e
+    );
+    background-size: 200% 200%;
+    animation: smoothGradient 8s ease infinite;
+    color: white; /* 텍스트 가독성을 위해 흰색 */
+  }
+
+  @keyframes smoothGradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* 선택한 게시물에 부드러운 투명도 추가 */
+  .top-user-gradient td {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .top-user-gradient:hover {
+    background: linear-gradient(
+      135deg,
+      #fbc2eb,
+      #a18cd1,
+      #fad0c4,
+      #ff9a9e
+    );
+    color: #222; /* 호버 시 가독성을 위해 어두운 색 */
+  }
     .modal {
     position: fixed;
     top: 0;
