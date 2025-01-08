@@ -200,7 +200,7 @@
         <!-- 포인트 전송 열기 버튼 -->
 <button id="open-send-points-modal" class="px-4 py-2 text-sm bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full hover-scale shadow-md transition-all duration-300 ">
   포인트 보내기
-</button>
+</button><span id="current-points" class="text-sm font-bold text-gray-700"></span>
 <button id="open-give-points" class="px-4 py-2 text-sm bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full hover-scale shadow-md transition-all duration-300 hidden">
   <i class="fas fa-coins mr-2 text-yellow-400"></i> 포인트 지급
 </button>
@@ -272,7 +272,7 @@
      id="mobile-odd-even-button"
      class="btn w-full flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white py-3 px-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
    >
-     <i class="fas fa-dice text-white"></i> 홀짝 도박
+     <i class="fas fa-dice text-white"></i> 홀짝 도박 
    </button>
  
  </nav>
@@ -312,11 +312,12 @@
   </div>
 </div>
 <!-- 홀짝 도박 모달 -->
-<div id="odd-even-modal" class="modal fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+<div id="odd-even-modal" class="modal fixed inset-0 flex items-center justify-center bg-black/50  hidden">
   <div class="modal-content bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 transform scale-95">
     <h3 class="text-xl font-bold mb-6 text-gray-700 flex items-center gap-2">
       <i class="fas fa-dice text-pink-500"></i> 홀짝 도박
     </h3>
+    
     <p class="text-sm text-gray-600 mb-4">포인트를 베팅하고 홀/짝을 맞춰보세요!</p>
     <input 
       type="number" 
