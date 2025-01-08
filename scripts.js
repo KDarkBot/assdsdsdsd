@@ -678,26 +678,27 @@ const loadPosts = async () => {
             }
 
             row.innerHTML = `
-              <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
-              <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
-              <td class="py-4 px-6 hidden md:table-cell text-sm sm:text-base">${timestamp}</td>
-              <td class="py-4 px-6 text-center text-sm sm:text-base">${post.likes || 0}</td>
-              <td class="py-4 px-6 text-center">
-                <button class="view-post bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600" data-id="${postId}">
-                  보기
-                </button>
-                ${
-                  (isAdmin || userStealItems > 0)
-                    ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">뺏기</button>`
-                    : ""
-                }
-                ${
-                  isAdmin
-                    ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">삭제</button>`
-                    : ""
-                }
-              </td>
-            `;
+            <td class="py-2 px-4 text-sm sm:text-base truncate whitespace-nowrap">${post.title || "제목 없음"}</td>
+            <td class="py-2 px-4 text-sm sm:text-base truncate whitespace-nowrap">${post.author || "작성자 없음"}</td>
+            <td class="py-2 px-4 hidden md:table-cell text-sm sm:text-base whitespace-nowrap">${timestamp}</td>
+            <td class="py-2 px-4 text-center text-sm sm:text-base whitespace-nowrap">${post.likes || 0}</td>
+            <td class="py-2 px-4 text-center whitespace-nowrap">
+              <button class="view-post bg-indigo-500 text-white px-2 py-1 rounded hover:bg-indigo-600 transition-all duration-200" data-id="${postId}">
+                보기
+              </button>
+              ${
+                (isAdmin || userStealItems > 0)
+                  ? `<button class="steal-post bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-all duration-200 ml-1" data-id="${postId}">뺏기</button>`
+                  : ""
+              }
+              ${
+                isAdmin
+                  ? `<button class="delete-post bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition-all duration-200 ml-1" data-id="${postId}">삭제</button>`
+                  : ""
+              }
+            </td>
+          `;
+          
 
             postList.appendChild(row);
           });
@@ -928,6 +929,14 @@ auth.onAuthStateChanged(async (user) => {
 const openSendPointsModal = document.getElementById("open-send-points-modal");
 const closeSendPointsModal = document.getElementById("close-send-points-modal");
 const sendPointsModal = document.getElementById("send-points-modal");
+document.getElementById("mobile-send-points-button")?.addEventListener("click", () => {
+  if (!currentUser) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+  // 포인트 보내기 모달 열기
+  toggleModal("send-points-modal", true);
+});
 
 openSendPointsModal.addEventListener("click", () => {
   sendPointsModal.classList.remove("hidden");
