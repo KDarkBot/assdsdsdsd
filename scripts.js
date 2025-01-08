@@ -673,7 +673,7 @@ const loadPosts = async () => {
             const isTopUser = topUser === post.author; // 1등 사용자와 일치 여부 확인
 
             const row = document.createElement("tr");
-            row.className = isTopUser ? "top-user-row bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 animate-pulse" : ""; // 1등 스타일 추가
+            row.classList.add(isTopUser ? "top-user-gradient" : ""); // 1등 사용자에 클래스 추가
             row.innerHTML = `
               <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.title || "제목 없음"}</td>
               <td class="py-4 px-6 text-sm sm:text-base truncate-mobile">${post.author || "작성자 없음"}</td>
