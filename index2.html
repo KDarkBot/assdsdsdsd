@@ -1,36 +1,131 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>포인트 랭킹</title>
-  <!-- Tailwind CSS (필요시) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포인트 랭킹</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a","950":"#172554"}
+                    }
+                },
+                fontFamily: {
+                    'sans': ['Pretendard', 'sans-serif'],
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    </style>
 </head>
-<body class="bg-gray-50">
-  <!-- 상단 헤더/네비게이션 -->
-  <header class="bg-white shadow-md p-4">
-    <nav class="container mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold text-indigo-600">포인트 랭킹</h1>
-      <!-- 메인으로 돌아가는 버튼 -->
-      <button id="go-back-button" class="bg-gray-300 px-3 py-2 rounded hover:bg-gray-400">
-        메인으로
-      </button>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 네비게이션 바 -->
+    <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
+        <div class="px-3 py-3 lg:px-5 lg:pl-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center justify-start">
+                    <button id="toggle-sidebar" aria-expanded="true" aria-controls="sidebar" class="p-2 text-gray-600 rounded-lg lg:hidden hover:bg-gray-100 focus:ring-2 focus:ring-gray-100">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+                        </svg>
+                    </button>
+                    <a href="/" class="flex ml-2 md:mr-24">
+                        <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary-700">포인트 랭킹</span>
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <button type="button" id="go-back-button" class="text-gray-500 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 transition-all duration-300">
+                        메인으로
+                    </button>
+                </div>
+            </div>
+        </div>
     </nav>
-  </header>
 
-  <main class="container mx-auto p-4">
-    <h2 class="text-2xl font-semibold mb-4">포인트 랭킹 보드</h2>
-    <!-- 랭킹 표시 영역 -->
-    <ul id="ranking-list" class="space-y-2">
-      <!-- ranking.js 로딩 시 loadRanking()에서 동적 생성 -->
-    </ul>
-  </main>
+    <!-- 사이드바 -->
+    <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 lg:translate-x-0" aria-label="Sidebar">
+        <div class="h-full px-3 pb-4 overflow-y-auto bg-white">
+            <ul class="space-y-2 font-medium">
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <svg class="w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
+                            <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
+                            <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"/>
+                        </svg>
+                        <span class="ml-3">전체 랭킹</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <svg class="w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
+                            <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 4a2 2 0 1 1 4 0v1H7V4Z"/>
+                        </svg>
+                        <span class="ml-3">월간 랭킹</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
+                        <svg class="w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                            <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
+                        </svg>
+                        <span class="ml-3">주간 랭킹</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
 
-  <!-- Firebase SDKs (Firebase App, Firestore) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- 메인 컨텐츠 -->
+    <div class="p-4 lg:ml-64 mt-14">
+        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold leading-none text-gray-900">포인트 랭킹 보드</h3>
+                <select id="ranking-period" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
+                    <option value="all">전체 기간</option>
+                    <option value="month">이번 달</option>
+                    <option value="week">이번 주</option>
+                </select>
+            </div>
+            <!-- 랭킹 리스트 -->
+            <div class="flow-root">
+                <ul id="ranking-list" class="divide-y divide-gray-200">
+                    <!-- 랭킹 항목들이 여기에 동적으로 추가됨 -->
+                </ul>
+            </div>
+        </div>
+    </div>
 
-  <!-- ranking.js (아래에서 정의) -->
-  <script src="ranking.js" defer></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="ranking.js" defer></script>
+
+    <script>
+        // 사이드바 토글 기능
+        document.getElementById('toggle-sidebar').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // 반응형 처리
+        function handleResize() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth >= 1024) { // lg 브레이크포인트
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // 초기 로드 시 실행
+    </script>
 </body>
 </html>
