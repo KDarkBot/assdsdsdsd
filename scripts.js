@@ -750,7 +750,7 @@ function givePointsToUser(targetUid) {
     }
     // 모달 열기
     toggleModal("give-points-modal", true);
-    // 열 때마다 전체 유저 목록 로드
+    // 열 때마다 전체 유저 목록 로드 
     loadAllUsers();
   });
 
@@ -776,6 +776,7 @@ function givePointsToUser(targetUid) {
       .then(() => {
         alert("로그인 성공!");
         toggleModal("login-modal", false);
+        window.location.reload(); // 새로고침 추가
       })
       .catch((error) => {
         console.error("로그인 실패:", error);
@@ -841,7 +842,9 @@ function givePointsToUser(targetUid) {
       .then(() => {
         alert("로그아웃 성공!");
         currentUser = null;
+        
         updateUI();
+        window.location.reload(); // 새로고침 추가
       })
       .catch((error) => {
         console.error("로그아웃 실패:", error);
