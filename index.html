@@ -32,6 +32,8 @@
       );
       animation: shine 2s infinite;
     }
+    
+  
   </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-50 via-white to-pink-50 text-gray-800 font-sans">
@@ -97,17 +99,15 @@
           <i class="fas fa-plus-circle"></i> 새 글 작성
         </button>
       </div>
-      <!-- 게시판 테이블 -->
       <div class="overflow-x-auto bg-white shadow-lg rounded-lg" data-aos="fade-up">
-        <table class="w-full text-left text-gray-700">
+        <table class="table-auto w-full text-left text-gray-700">
           <thead class="bg-gray-200">
             <tr>
-              <th class="py-3 px-4 hidden md:table-cell">NO</th>
-              <th class="py-3 px-4">제목</th>
-              <th class="py-3 px-4">작성자</th>
-              <th class="py-3 px-4 hidden md:table-cell">작성 시간</th>
-              <th class="py-3 px-4">좋아요</th>
-              <th class="py-3 px-4">보기</th>
+              <th class="py-3 px-4 text-sm sm:text-base">제목</th>
+              <th class="py-3 px-4 text-sm sm:text-base">작성자</th>
+              <th class="py-3 px-4 text-sm sm:text-base hidden md:table-cell">작성 시간</th>
+              <th class="py-3 px-4 text-sm sm:text-base text-center">좋아요</th>
+              <th class="py-3 px-4 text-sm sm:text-base text-center">보기</th>
             </tr>
           </thead>
           <tbody id="post-list" class="divide-y divide-gray-100">
@@ -115,6 +115,9 @@
           </tbody>
         </table>
       </div>
+      
+      
+      
     </section>
   </main>
 
