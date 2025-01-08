@@ -438,8 +438,7 @@ auth.onAuthStateChanged(async (user) => {
         // 게시물 삭제
         await db.collection("posts").doc(postId).delete();
         alert("게시물이 삭제되었습니다!");
-        // 새로고침
-        window.location.reload();
+        loadPosts(); // 게시물 목록 새로고침
       } else {
         alert("삭제 권한(쿠폰)이 없습니다!");
       }
@@ -448,6 +447,7 @@ auth.onAuthStateChanged(async (user) => {
       alert("게시물 삭제 중 오류가 발생했습니다.");
     }
   }
+  
   
   // -------------------------------
   // 9) 게시물 보기(viewPost)
@@ -515,25 +515,41 @@ auth.onAuthStateChanged(async (user) => {
   // -------------------------------
   // 10) 게시물 목록 불러오기(loadPosts)
   // -------------------------------
-  const loadPosts = async () => {
-    const postList = document.getElementById("post-list");
-    postList.innerHTML = "";
-  
-    try {
-      const userDoc = await db.collection("users").doc(currentUser.uid).get();
-      const userStealItems = userDoc.data().stealItems || 0; // 현재 사용자의 뺏기 아이템 수량
-  
-      const snapshot = await db.collection("posts").orderBy("timestamp", "desc").get();
-      let count = snapshot.size;
-  
-      snapshot.forEach((doc) => {
+  // 상단에 추가
+  let isFetching = false; // 데이터를 가져오는 중인지 확인
+const POSTS_PER_PAGE = 10; // 페이지당 로드할 게시물 수
+let lastVisibleDoc = null
+const loadPosts = async () => {
+  if (isFetching) return; // 이미 데이터를 가져오는 중이면 중단
+  isFetching = true;
+
+  const postList = document.getElementById("post-list");
+
+  let query = db.collection("posts")
+    .orderBy("timestamp", "desc")
+    .limit(POSTS_PER_PAGE);
+
+  if (lastVisibleDoc) {
+    query = query.startAfter(lastVisibleDoc);
+  }
+
+  try {
+    const userDoc = await db.collection("users").doc(currentUser.uid).get();
+    const userStealItems = userDoc.data().stealItems || 0;
+
+    const snapshot = await query.get();
+
+    if (!snapshot.empty) {
+      lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]; // 마지막 문서 저장
+
+      snapshot.forEach((doc, index) => {
         const post = doc.data();
         const postId = doc.id;
         const timestamp = post.timestamp?.toDate().toLocaleString() || "시간 정보 없음";
-  
+
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td class="py-4 px-6 hidden md:table-cell">${count--}</td>
+          <td class="py-4 px-6 hidden md:table-cell">${index + 1}</td>
           <td class="py-4 px-6">${post.title || "제목 없음"}</td>
           <td class="py-4 px-6">${post.author || "작성자 없음"}</td>
           <td class="py-4 px-6 hidden md:table-cell">${timestamp}</td>
@@ -543,16 +559,16 @@ auth.onAuthStateChanged(async (user) => {
               보기
             </button>
             ${
-              (isAdmin || userCredits > 0)
-                ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
-                     삭제
+              (isAdmin || userStealItems > 0)
+                ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
+                     뺏기
                    </button>`
                 : ""
             }
             ${
-              (userStealItems > 0)
-                ? `<button class="steal-post bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 ml-2" data-id="${postId}">
-                     뺏기
+              isAdmin
+                ? `<button class="delete-post bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 ml-2" data-id="${postId}">
+                     삭제
                    </button>`
                 : ""
             }
@@ -560,36 +576,69 @@ auth.onAuthStateChanged(async (user) => {
         `;
         postList.appendChild(row);
       });
-    } catch (error) {
-      console.error("게시물 목록을 불러오는 중 오류 발생:", error);
+
+      // 버튼 이벤트 추가
+      document.querySelectorAll(".view-post").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const postId = e.target.dataset.id;
+          viewPost(postId);
+        });
+      });
+
+      document.querySelectorAll(".delete-post").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const postId = e.target.dataset.id;
+          deletePost(postId);
+        });
+      });
+
+      document.querySelectorAll(".steal-post").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const postId = e.target.dataset.id;
+          stealPost(postId);
+        });
+      });
+    } else {
+      console.log("더 이상 불러올 데이터가 없습니다.");
     }
+  } catch (error) {
+    console.error("게시물 목록을 불러오는 중 오류 발생:", error);
+  }
+
+  isFetching = false; // 데이터 가져오기 완료
+};
+
+// 스크롤 이벤트 추가
+const handleScroll = () => {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+  if (scrollTop + clientHeight >= scrollHeight - 200 && !isFetching) {
+    loadPosts(); // 스크롤이 하단에 가까워지면 게시물 추가 로드
+  }
+};
+
+window.addEventListener("scroll", handleScroll);
+
+// 초기 데이터 로드
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    isAdmin = userDoc.exists && userDoc.data().role === "admin";
+
+    loadPosts(); // 초기 데이터 로드
+  } else {
+    console.log("로그인이 필요합니다.");
+  }
+});
+
   
-    // "보기" 버튼 이벤트
-    document.querySelectorAll(".view-post").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const postId = e.target.dataset.id;
-        viewPost(postId);
-      });
-    });
-  
-    // "삭제" 버튼 이벤트
-    document.querySelectorAll(".delete-post").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const postId = e.target.dataset.id;
-        deletePost(postId);
-      });
-    });
-  
-    // "뺏기" 버튼 이벤트
-    document.querySelectorAll(".steal-post").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const postId = e.target.dataset.id;
-        stealPost(postId);
-      });
-    });
-  };
   
   const stealPost = async (postId) => {
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
     try {
       const userDoc = await db.collection("users").doc(currentUser.uid).get();
       const userName = userDoc.data().name || "익명";
