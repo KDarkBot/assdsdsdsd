@@ -573,12 +573,22 @@ mobileOddEvenButton?.addEventListener("click", () => {
       const userData = userDoc.data();
       const points = userData.points || 0;
   
+      // "current-points" 요소 업데이트
       const pointsDisplay = document.getElementById("current-points");
-      pointsDisplay.textContent = `보유 포인트: ${points}`;
+      if (pointsDisplay) {
+        pointsDisplay.textContent = `보유 포인트: ${points}`;
+      }
+  
+      // "current-points-display" 요소 업데이트
+      const pointsDisplayModal = document.getElementById("current-points-display");
+      if (pointsDisplayModal) {
+        pointsDisplayModal.textContent = `보유 포인트: ${points}`;
+      }
     } catch (error) {
       console.error("포인트 업데이트 오류:", error);
     }
   }
+  
   
   auth.onAuthStateChanged(async (user) => {
     if (user) {
