@@ -344,40 +344,24 @@
   </div>
 </div>
 
-  <!-- 메인 컨텐츠 -->
-  <main class="container mx-auto p-6">
-    <!-- 게시판 -->
-    <section>
-      <div class="flex justify-between items-center mb-6" data-aos="fade-down">
-        <h2 class="text-2xl font-semibold text-gray-700 flex items-center gap-2">
-          <i class="fas fa-photo-video text-pink-500"></i> 자유 게시판
-        </h2>
-        <button id="new-post" class="btn flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-pink-700">
-          <i class="fas fa-plus-circle"></i> 새 글 작성
-        </button>
-      </div>
-      <div class="overflow-x-auto bg-white shadow-lg rounded-lg" data-aos="fade-up">
-        <table class="table-auto w-full text-left text-gray-700">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="py-3 px-4 text-sm sm:text-base text-center">종류</th> <!-- 게시물 종류 추가 -->
-              <th class="py-3 px-4 text-sm sm:text-base">제목</th>
-              <th class="py-3 px-4 text-sm sm:text-base">작성자</th>
-              <th class="py-3 px-4 text-sm sm:text-base hidden md:table-cell">작성 시간</th>
-            
-              <th class="py-3 px-4 text-sm sm:text-base text-center">좋아요</th>
-              <th class="py-3 px-4 text-sm sm:text-base text-center">보기</th>
-            </tr>
-          </thead>
-          <tbody id="post-list" class="divide-y divide-gray-100">
-            <!-- 동적 콘텐츠 -->
-          </tbody>
-        </table>
-      </div>
-      
-      
-      
-    </section>
+    <!-- Table Section -->
+    <div class="overflow-auto bg-white shadow-lg rounded-lg">
+      <table class="w-full table-auto border-collapse">
+        <thead class="bg-gray-200 text-gray-600 text-sm font-semibold uppercase tracking-wide">
+          <tr>
+            <th class="py-4 px-6 border-b border-gray-300 text-left">No</th>
+            <th class="py-4 px-6 border-b border-gray-300 text-left">제목</th>
+            <th class="py-4 px-6 border-b border-gray-300 text-left">작성자</th>
+            <th class="py-4 px-6 border-b border-gray-300 text-left">작성시간</th>
+            <th class="py-4 px-6 border-b border-gray-300 text-left">좋아요</th>
+            <th class="py-4 px-6 border-b border-gray-300 text-left">보기</th>
+          </tr>
+        </thead>
+        <tbody id="post-list" class="divide-y divide-gray-200 text-gray-700 text-sm">
+          <!-- 게시물 데이터가 여기에 추가됩니다 -->
+        </tbody>
+      </table>
+    </div>
   </main>
 
    <!-- 모달 템플릿 (로그인 모달 예시) -->
@@ -411,246 +395,57 @@
       </div>
     </div>
   </div>
- <!-- 회원 정보 수정 모달 -->
- <div id="edit-user-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
-  <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 max-w-sm w-full relative">
-    <h3 class="text-lg font-bold mb-4 text-gray-700">회원 정보 수정</h3>
-    <input
-      type="text"
-      id="edit-username"
-      class="w-full p-2 md:p-3 text-sm md:text-base border rounded-lg mb-4 focus:ring focus:ring-indigo-200"
-      placeholder="새 이름"
-    >
-    <div class="flex justify-end gap-2">
-      <button id="save-user-info" class="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-indigo-600 text-white rounded-lg">저장</button>
-      <button id="close-edit-user-modal" class="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-300 text-gray-800 rounded-lg">취소</button>
+  
+
+  <!-- 새 글 작성 모달 -->
+  <div id="post-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-6 max-w-lg w-full">
+      <h3 class="text-xl font-bold mb-4 text-gray-700">새 글 작성</h3>
+      <input type="text" id="post-title" class="w-full p-3 border rounded-lg mb-4 focus:ring focus:ring-indigo-200" placeholder="제목을 입력하세요" required>
+      <textarea id="post-content" class="w-full p-3 border rounded-lg mb-4 focus:ring focus:ring-indigo-200" placeholder="내용을 입력하세요" required></textarea>
+      <input type="file" id="post-file" class="w-full p-3 border rounded-lg mb-4 focus:ring focus:ring-indigo-200" accept="image/*">
+      <div class="flex justify-end gap-2">
+        <button id="save-post" class="px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600">저장</button>
+        <button id="close-post-modal" class="px-4 py-2 bg-gray-300 text-gray-800 font-medium rounded-lg hover:bg-gray-400">닫기</button>
+      </div>
     </div>
   </div>
-</div>
- <!-- 게시물 보기 모달 -->
- <div
- id="view-modal"
- class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
->
- <div
-   class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-4xl relative
-          max-h-[80vh] overflow-auto"
- >
-   <button
-     id="close-view-modal"
-     class="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 font-medium rounded-lg hover:bg-gray-400"
-   >
-     닫기
-   </button>
 
-   <h3
-     id="view-title"
-     class="text-xl md:text-2xl font-semibold mb-4 text-center text-gray-700"
-   ></h3>
-
-   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-     <!-- 왼쪽: 이미지 섹션 -->
-     <div
-       id="view-image"
-       class="bg-gray-100 rounded-lg flex items-center justify-center h-72 shadow-md"
-     >
-       <span class="text-gray-400">이미지가 없습니다</span>
-     </div>
-
-     <!-- 오른쪽: 게시물 정보, 좋아요, 별점 -->
-     <div>
-       <p class="text-gray-600 mb-1">
-         <strong>작성자:</strong>
-         <span id="view-author"></span>
-       </p>
-       <p class="text-gray-600 mb-4">
-         <strong>작성시간:</strong>
-         <span id="view-timestamp"></span>
-       </p>
-       <p class="text-gray-600">
-         <strong>내용:</strong>
-       </p>
-       <p
-         id="view-content"
-         class="mt-1 text-gray-700 mb-4"
-       ></p>
-
-       <!-- 관리자 별점 섹션 -->
-       <div class="mb-4">
-         <p class="text-gray-600">
-           <strong>관리자 별점:</strong>
-           <span id="view-rating" class="text-yellow-500">없음</span>
-         </p>
-         <div
-           id="rating-section"
-           class="mt-2 flex gap-2 hidden"
-         >
-           <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="1">1점</button>
-           <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="2">2점</button>
-           <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="3">3점</button>
-           <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="4">4점</button>
-           <button class="rate bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500" data-rating="5">5점</button>
-         </div>
-       </div>
-
-       <!-- 좋아요 버튼 -->
-       <button
-         id="like-post"
-         class="like-button bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600"
-       >
-         ❤️ 좋아요
-       </button>
-     </div>
-   </div>
-
-   <!-- 댓글 섹션 -->
-   <div class="mt-6">
-     <h4 class="text-lg md:text-xl font-semibold text-gray-700 mb-2">
-       댓글
-     </h4>
-     <div
-       id="comment-list"
-       class="space-y-2 mb-4 border-t pt-4 max-h-60 overflow-y-auto"
-     >
-       <!-- 댓글이 동적으로 추가됨 -->
-     </div>
-     <div class="flex flex-col md:flex-row gap-2">
-       <textarea
-         id="comment-input"
-         class="flex-1 p-2 border rounded"
-         rows="2"
-         placeholder="댓글을 입력하세요"
-       ></textarea>
-       <button
-         id="add-comment"
-         class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 md:self-end"
-       >
-         댓글 달기
-       </button>
-     </div>
-   </div>
- </div>
-</div>
-<div id="badge-modal" class="modal fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur hidden">
-  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-3xl">
-    <h2 class="text-2xl font-semibold text-gray-800 mb-4">뱃지 도감</h2>
-    <div id="badge-container" class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <!-- Badge cards are dynamically added here -->
-    </div>
-    <button id="close-badge-modal" class="btn mt-6 bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">
-      닫기
-    </button>
-  </div>
-</div>
-
- <!-- 새 글 작성 모달 -->
-<div id="post-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
-  <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 max-w-lg w-full relative">
-    <h3 class="text-lg md:text-xl font-bold mb-4 text-gray-700">새 글 작성</h3>
-    <input
-      type="text"
-      id="post-title"
-      class="w-full p-2 md:p-3 text-sm md:text-base border rounded-lg mb-4 focus:ring focus:ring-indigo-200"
-      placeholder="제목을 입력하세요"
-      required
-    >
-    <textarea
-      id="post-content"
-      class="w-full p-2 md:p-3 text-sm md:text-base border rounded-lg mb-4 focus:ring focus:ring-indigo-200 min-h-[100px]"
-      placeholder="내용을 입력하세요"
-      required
-    ></textarea>
-    <input
-      type="file"
-      id="post-file"
-      class="w-full p-2 md:p-3 text-sm md:text-base border rounded-lg mb-4 focus:ring focus:ring-indigo-200"
-      accept="image/*"
-    >
-
-    <!-- 게시물 종류 선택 -->
-    <h4 class="text-sm md:text-base font-bold mb-2 text-gray-700">게시물 종류 선택</h4>
-    <div id="post-type-selector" class="grid grid-cols-2 gap-4 mb-4">
-      <button
-        class="post-type-option p-2 flex flex-col items-center gap-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition"
-        data-type="landscape"
-      >
-        <i class="fas fa-mountain text-xl md:text-2xl"></i>
-        <span class="text-xs md:text-sm">풍경사진</span>
-      </button>
-      <button
-        class="post-type-option p-2 flex flex-col items-center gap-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition"
-        data-type="art"
-      >
-        <i class="fas fa-palette text-xl md:text-2xl"></i>
-        <span class="text-xs md:text-sm">그림</span>
-      </button>
-      <button
-        class="post-type-option p-2 flex flex-col items-center gap-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition"
-        data-type="stocks"
-      >
-        <i class="fas fa-chart-line text-xl md:text-2xl"></i>
-        <span class="text-xs md:text-sm">주식</span>
-      </button>
-      <button
-        class="post-type-option p-2 flex flex-col items-center gap-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition"
-        data-type="daily"
-      >
-        <i class="fas fa-coffee text-xl md:text-2xl"></i>
-        <span class="text-xs md:text-sm">일상</span>
-      </button>
-    </div>
-
-    <div class="flex justify-end gap-2">
-      <button id="save-post" class="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-green-500 text-white font-medium rounded-lg hover:bg-green-600">
-        저장
-      </button>
-      <button id="close-post-modal" class="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-300 text-gray-800 font-medium rounded-lg hover:bg-gray-400">
-        닫기
-      </button>
-    </div>
-  </div>
-</div>
-
-   <!-- 상점 모달 -->
-   <div id="shop-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative">
-      <h3 class="text-lg font-bold mb-4 text-gray-700">상점</h3>
-      <!-- 닫기 버튼 -->
-      <button id="close-shop-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
-        X
-      </button>
-
-      <!-- 상점 아이템 목록 -->
-      <div class="space-y-3">
-        <!-- 아이템: 게시물 하나 지우기 -->
-        <div class="p-3 border rounded flex justify-between items-center">
-          <div>
-            <p class="font-semibold">게시물 하나 지우기</p>
-            <p class="text-sm text-gray-600">포인트로 구매할 수 있습니다.</p>
+<!-- 게시물 보기 모달 -->
+<div id="view-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl">
+      <h3 id="view-title" class="text-2xl font-semibold mb-6 text-center text-gray-700"></h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- 이미지 섹션 -->
+        <div id="view-image" class="bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden h-72 shadow-md">
+          <span class="text-gray-400">이미지가 없습니다</span>
+        </div>
+  
+        <!-- 상세 정보 섹션 -->
+        <div>
+          <p class="text-gray-600"><strong>작성자:</strong> <span id="view-author"></span></p>
+          <p class="text-gray-600"><strong>작성시간:</strong> <span id="view-timestamp"></span></p>
+          <p class="text-gray-600 mt-4"><strong>내용:</strong></p>
+          <p id="view-content" class="mt-2 text-gray-700"></p>
+  
+          <!-- 관리자 별점 섹션 -->
+          <p class="mt-6 text-gray-600"><strong>관리자 별점:</strong> <span id="view-rating" class="text-yellow-500">없음</span></p>
+          <div id="rating-section" class="mt-4 flex gap-2 hidden">
+            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="1">1점</button>
+            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="2">2점</button>
+            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="3">3점</button>
+            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="4">4점</button>
+            <button class="rate bg-yellow-400 text-white px-4 py-2 rounded-lg hover:bg-yellow-500" data-rating="5">5점</button>
           </div>
-          <button id="buy-delete-post-item" class="bg-yellow-500 text-white px-3 py-1 rounded">
-            구매 (50 포인트)
-          </button>
+  
+          <!-- 좋아요 버튼 -->
+          <button id="like-post" class="like-button mt-6 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600">❤️ 좋아요</button>
         </div>
-         <!-- 새로운 아이템: 게시물 뺏기 -->
-      <div class="p-3 border rounded flex justify-between items-center">
-        <div>
-          <p class="font-semibold">게시물 뺏기</p>
-          <p class="text-sm text-gray-600">100 포인트로 구매할 수 있습니다.</p>
-        </div>
-        <button id="buy-steal-post-item" class="bg-red-500 text-white px-3 py-1 rounded">
-          구매 (100 포인트)
-        </button>
       </div>
-      <div class="p-3 border rounded flex justify-between items-center">
-        <div>
-          <p class="font-semibold">절대자 배지</p>
-          <p class="text-sm text-gray-600">100000000 포인트로 구매할 수 있습니다.</p>
-        </div>
-        <button id="buy-absolute-badge" class="bg-purple-500 text-white px-3 py-1 rounded">
-          구매 (100000000 포인트)
-        </button>
-      </div>
+  
+      <!-- 닫기 버튼 -->
+      <div class="flex justify-end mt-6">
+        <button id="close-view-modal" class="px-4 py-2 bg-gray-300 text-gray-800 font-medium rounded-lg hover:bg-gray-400">닫기</button>
       </div>
     </div>
   </div>
